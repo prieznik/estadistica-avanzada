@@ -13,6 +13,8 @@
 #  Recordatorio: en Python los decimales van con PUNTO (0.084, no 0,084).
 # =====================================================================
 
+from scipy.stats import f
+
 
 # ---------------------------------------------------------------------
 #  KIT 1: SACAR DATOS DE MUESTRAS
@@ -109,3 +111,20 @@ def desvio_desde_varianza(varianza):
 # r = 95 - 8 = 87, no 8.
 def proporcion(r, n):
     return r / n
+
+
+# ---------------------------------------------------------------------
+#  KIT 2: BUSCAR VALORES EN TABLAS
+# ---------------------------------------------------------------------
+#
+#  Reemplazan buscar a mano en las tablas del cuadernillo.
+#  "probabilidad" es siempre el área que queda a la IZQUIERDA del valor.
+# ---------------------------------------------------------------------
+
+# CUÁNDO: comparar varianzas o desvíos de DOS poblaciones (Tema IV).
+# PARA QUÉ: obtener el valor de la tabla F, ej: F(0,10 ; 12 ; 20) = 0,4855
+#   probabilidad = área a la izquierda (ej: 0.10)
+#   gl_num = n - 1 de la muestra que va ARRIBA (numerador)
+#   gl_den = n - 1 de la muestra que va ABAJO (denominador)
+def valor_f(probabilidad, gl_num, gl_den):
+    return f.ppf(probabilidad, gl_num, gl_den)
