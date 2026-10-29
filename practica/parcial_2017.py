@@ -3,14 +3,12 @@
 #  Presencia de poros (en ppm) con dos procedimientos, A y B.
 # =====================================================================
 #
-#  Ejemplo de cómo usar el kit: los datos del ejercicio van acá,
-#  las funciones se traen de formulas.py (tiene que estar en la misma carpeta).
-#
 #  Resultado esperado (según la resolución manuscrita):
 #    media A = 206,52   media B = 229
 # =====================================================================
 
-from formulas import n_agrupado, media_agrupada, desvio_agrupado
+import _ruta  # para que Python encuentre la carpeta formulas
+from formulas.datos import n_agrupado, media_agrupada, desvio_agrupado
 
 # Datos de la consigna: (desde, hasta, frecuencia)
 procedimiento_a = [
@@ -40,7 +38,3 @@ desvio_b = desvio_agrupado(procedimiento_b)
 
 print(f"A: n = {n_a}, media = {media_a:.2f}, desvío = {desvio_a:.2f}")
 print(f"B: n = {n_b}, media = {media_b:.2f}, desvío = {desvio_b:.2f}")
-
-# Próximos pasos (cuando estén las funciones):
-#   - test F para comparar varianzas
-#   - comparación de medias
