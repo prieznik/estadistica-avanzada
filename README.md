@@ -7,6 +7,7 @@ Funciones en Python para resolver los ejercicios de Estadística Aplicada (UADE)
 ```
 estadistica-avanzada/
 ├── formulas/          ← las funciones, un archivo por tema
+│   ├── hipotesis.py   ← guía para plantear H0/H1, cola, optimista/pesimista, α
 │   ├── datos.py       ← n, media, desvío y proporción de la consigna
 │   └── fisher.py      ← comparar variabilidades de dos poblaciones (F)
 ├── practica/          ← un archivo por ejercicio
@@ -24,6 +25,7 @@ señales en la consigna, cosas que tenés que saber y qué decidís vos vs. qué
 
 | Si la consigna... | Abrí |
 |---|---|
+| pregunta "¿se puede afirmar...?", "¿existen evidencias?", "¿cumple?", "¿cuál es la decisión?" | `formulas/hipotesis.py` (primero) |
 | te da valores, una tabla con frecuencias o un conteo ("8 de 95 con fallas") | `formulas/datos.py` |
 | habla de variabilidad, desvío, dispersión, "más parejo", "reducir el desvío" | `formulas/fisher.py` |
 | compara dos grupos A y B en una tabla (primer paso: ¿varianzas iguales?) | `formulas/fisher.py` |
@@ -50,6 +52,7 @@ señales en la consigna, cosas que tenés que saber y qué decidís vos vs. qué
 
    ```python
    import _ruta
+   from formulas.hipotesis import planteo
    from formulas.datos import media_agrupada, desvio_agrupado
    from formulas.fisher import cociente_varianzas, valor_critico, rechaza_h0
    ```
