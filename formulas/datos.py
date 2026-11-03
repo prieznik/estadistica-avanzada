@@ -106,3 +106,31 @@ def desvio_desde_varianza(varianza):
 # r = 95 - 8 = 87, no 8.
 def proporcion(r, n):
     return r / n
+
+
+# --- Contar datos de una tabla por debajo / encima de un valor --------
+
+# CUÁNDO: "si se estipula un mínimo de 14.000 hs, estimar el porcentaje
+#         que NO cumple" o "un máximo de 200 Kwh para la bonificación".
+# PARA QUÉ: obtener r (cuántos datos de la tabla quedan por debajo del
+#   valor). Después usás intervalo_proporcion(r, n, ...) de proporciones.py
+# Si el valor cae en el MEDIO de un intervalo, se reparte esa clase en
+# forma proporcional (supuesto: datos parejos dentro de la clase) y se
+# redondea. Te avisa, porque conviene confirmar con el profe cómo lo toma.
+def contar_debajo(clases, valor):
+    r = 0
+    for desde, hasta, f in clases:
+        if hasta <= valor:
+            r += f
+        elif desde < valor < hasta:
+            parte = f * (valor - desde) / (hasta - desde)
+            print(f"  Ojo: {valor} cae dentro de la clase {desde}-{hasta}: "
+                  f"se toman {parte:.2f} de sus {f} datos (proporcional).")
+            r += parte
+    return round(r)
+
+
+# CUÁNDO: igual que contar_debajo, pero para "por encima de" un valor.
+# PARA QUÉ: r = n - (los que quedan por debajo)
+def contar_encima(clases, valor):
+    return n_agrupado(clases) - contar_debajo(clases, valor)

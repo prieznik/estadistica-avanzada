@@ -61,7 +61,7 @@ from scipy.stats import f
 #   gl_num = n - 1 de la muestra que va ARRIBA
 #   gl_den = n - 1 de la muestra que va ABAJO
 def valor_f(probabilidad, gl_num, gl_den):
-    return f.ppf(probabilidad, gl_num, gl_den)
+    return float(f.ppf(probabilidad, gl_num, gl_den))
 
 
 # CUÁNDO: ya tenés los desvíos muestrales de las dos poblaciones.
