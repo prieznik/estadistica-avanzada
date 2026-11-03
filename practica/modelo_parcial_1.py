@@ -55,16 +55,36 @@ from formulas.proporciones import ensayo_proporcion, intervalo_proporcion
 
 horno_a = [
     (40, 50, 6),
-    # completá
+    (50,60,20),
+    (60,70,38),
+    (70,80,24),
+    (80,90,8),
+    (90,100,4)
 ]
 
 horno_b = [
-    # completá
+    (40, 50, 2),
+    (50,60,12),
+    (60,70,30),
+    (70,80,34),
+    (80,90,16),
+    (90,100,6)
 ]
 
 # ===== Ejercicio 1 =====
 
 # a)
+n_a = n_agrupado(horno_a)
+n_b = n_agrupado(horno_b)
+
+media_a = media_agrupada(horno_a)
+media_b = media_agrupada(horno_b)
+
+desvio_a = desvio_agrupado(horno_a)
+desvio_b = desvio_agrupado(horno_b)
+
+print("Horno A: n =", n_a, "media =", media_a, "desvío =", desvio_a)
+print("Horno B: n =", n_b, "media =", media_b, "desvío =", desvio_b)
 
 # b)
 
