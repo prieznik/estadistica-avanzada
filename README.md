@@ -17,6 +17,7 @@ estadistica-avanzada/
 │   ├── _ruta.py           ← le dice a Python dónde está "formulas" (no tocar)
 │   ├── guia_tema6_ej20.py ← EJEMPLO COMPLETO de un segundo parcial, resuelto
 │   └── ...
+├── PASOS.md               ← pasos por tipo de pregunta (empezá por acá)
 ├── requirements.txt
 └── README.md
 ```
