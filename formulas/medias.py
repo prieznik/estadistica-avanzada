@@ -57,7 +57,7 @@ from formulas.fisher import cociente_varianzas, valor_critico, rechaza_h0
 # CUÁNDO: antes de comparar medias, si NO te dan los σ poblacionales.
 # PARA QUÉ: decidir si se amalgama ("pool") o se usa "welch".
 # Hace el test F como el apunte: desvío más grande arriba, cola derecha,
-# ψ0 = 1, α = 10%. Imprime el planteo para que lo copies en la hoja.
+# φ0 = 1, α = 10%. Imprime el planteo para que lo copies en la hoja.
 def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10):
     if s1 >= s2:
         s_arr, n_arr, s_ab, n_ab, quien = s1, n1, s2, n2, "σ1/σ2"
@@ -66,8 +66,8 @@ def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10):
     j2 = cociente_varianzas(s_arr, s_ab)
     j2c = valor_critico(1, alfa, n_arr - 1, n_ab - 1, "derecha")
     rechaza = rechaza_h0(j2, j2c, "derecha")
-    print(f"Test F para elegir método (ψ = {quien}, α = {alfa}):")
-    print(f"  H0: ψ ≤ 1   H1: ψ > 1   (cola derecha)")
+    print(f"Test F para elegir método (φ = {quien}, α = {alfa}):")
+    print(f"  H0: φ ≤ 1   H1: φ > 1   (cola derecha)")
     print(f"  j² = {j2:.4f}   j²c = {j2c:.4f}")
     if rechaza:
         print("  Se rechaza H0 -> varianzas DISTINTAS -> método de Welch")

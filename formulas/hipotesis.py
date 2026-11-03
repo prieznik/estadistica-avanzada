@@ -24,7 +24,7 @@
 # ---------------------------------------------------------------------
 #    - H0 siempre lleva el igual:   =   ≤   ≥
 #    - H1 es lo contrario de H0:    ≠   >   <
-#    - Las hipótesis hablan de la POBLACIÓN (μ, σ, p, ψ), nunca de la
+#    - Las hipótesis hablan de la POBLACIÓN (μ, σ, p, φ), nunca de la
 #      muestra (x̄, S, p̂).
 #    - Solo se dice "se rechaza H0" o "no se rechaza H0".
 #      Nunca "se acepta H0".
@@ -97,7 +97,7 @@
 # ---------------------------------------------------------------------
 #  6. CHECKLIST PARA LA HOJA DEL PARCIAL
 # ---------------------------------------------------------------------
-#    [ ] Parámetro que comparo (μ, σ, p, ψ = σ1/σ2, δ = μ1 - μ2)
+#    [ ] Parámetro que comparo (μ, σ, p, φ = σ1/σ2, δ = μ1 - μ2)
 #    [ ] Criterio y justificación (optimista / pesimista / lo que se
 #        quiere probar)
 #    [ ] H0 y H1

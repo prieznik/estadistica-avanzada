@@ -17,7 +17,7 @@
 #      cerca de 1 -> variabilidades parecidas
 #      mayor a 1  -> la de arriba es más variable
 #      menor a 1  -> la de arriba es más pareja
-#    Notación:  muestra  j = S1/S2     población  ψ = σ1/σ2
+#    Notación:  muestra  j = S1/S2     población  φ = σ1/σ2
 #
 #    Aunque las dos poblaciones sean iguales, por azar el cociente casi
 #    nunca da 1. La distribución F dice cuánto puede moverse por azar.
@@ -33,7 +33,7 @@
 #  QUÉ VA ARRIBA
 #    a) Si la consigna afirma algo de una población, esa va arriba.
 #       "el desvío de la PROPUESTA es menor en más de un 20% que el actual"
-#        -> σP / σA < 0,8   -> P arriba, ψ0 = 0,8
+#        -> σP / σA < 0,8   -> P arriba, φ0 = 0,8
 #    b) Si solo preguntan si las variabilidades son iguales,
 #       poné arriba la de desvío más GRANDE -> trabajás con cola derecha.
 #
@@ -41,14 +41,14 @@
 #    Te parás en el borde de H0 (ej: baja justo un 20%) y preguntás:
 #    ¿qué cociente podría salirme por azar? La línea es el valor que
 #    por azar solo cruzarías un α de las veces.
-#      j²c = ψ0² · F
+#      j²c = φ0² · F
 #    De qué lado va la línea, según lo que dice H1:
 #      H1 "menor" -> cola izquierda -> F(α)
 #      H1 "mayor" -> cola derecha   -> F(1 - α)
 #    Si el cociente de la muestra cruza la línea -> se rechaza H0.
 #
 #  QUÉ DECIDÍS VOS / QUÉ CALCULA EL PROGRAMA
-#    Vos: qué va arriba, ψ0, α y la cola (leyendo la consigna).
+#    Vos: qué va arriba, φ0, α y la cola (leyendo la consigna).
 #    Programa: el valor F, el cociente, la línea y si la cruza o no.
 # =====================================================================
 
@@ -71,15 +71,15 @@ def cociente_varianzas(s_arriba, s_abajo):
 
 
 # CUÁNDO: tenés que decidir (hacer el ensayo de hipótesis).
-# PARA QUÉ: obtener la línea j²c = ψ0² · F
-#   psi0  = relación de DESVÍOS de la hipótesis (ej: 0.8; si es igualdad, 1)
+# PARA QUÉ: obtener la línea j²c = φ0² · F
+#   phi0  = relación de DESVÍOS de la hipótesis (ej: 0.8; si es igualdad, 1)
 #   alfa  = riesgo (ej: 0.10)
 #   cola  = "izquierda" (H1 dice menor) o "derecha" (H1 dice mayor)
-def valor_critico(psi0, alfa, gl_num, gl_den, cola):
+def valor_critico(phi0, alfa, gl_num, gl_den, cola):
     if cola == "izquierda":
-        return psi0 ** 2 * valor_f(alfa, gl_num, gl_den)
+        return phi0 ** 2 * valor_f(alfa, gl_num, gl_den)
     else:
-        return psi0 ** 2 * valor_f(1 - alfa, gl_num, gl_den)
+        return phi0 ** 2 * valor_f(1 - alfa, gl_num, gl_den)
 
 
 # CUÁNDO: ya tenés el cociente de la muestra y la línea.

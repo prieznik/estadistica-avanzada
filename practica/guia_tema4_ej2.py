@@ -9,7 +9,7 @@
 #
 #  Lo que decidí leyendo la consigna (punto a):
 #    Quieren probar que P baja el desvío MÁS de un 20%:  σP / σA < 0,8
-#    -> ψ0 = 0,8   cola izquierda   α = 0,10
+#    -> φ0 = 0,8   cola izquierda   α = 0,10
 # =====================================================================
 
 import _ruta  # para que Python encuentre la carpeta formulas
