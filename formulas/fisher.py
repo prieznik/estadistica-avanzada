@@ -76,6 +76,8 @@ def cociente_varianzas(s_arriba, s_abajo):
 #   alfa  = riesgo (ej: 0.10)
 #   cola  = "izquierda" (H1 dice menor) o "derecha" (H1 dice mayor)
 def valor_critico(phi0, alfa, gl_num, gl_den, cola):
+    if cola not in ("derecha", "izquierda"):
+        raise ValueError(f'cola = "{cola}" no existe. Usá "derecha" o "izquierda".')
     if cola == "izquierda":
         return phi0 ** 2 * valor_f(alfa, gl_num, gl_den)
     else:

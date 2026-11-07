@@ -52,6 +52,19 @@ from scipy.stats import t, norm
 from formulas.fisher import cociente_varianzas, valor_critico, rechaza_h0
 
 
+def _n(x, dec=4):
+    return f"{x:.{dec}f}".replace(".", ",")
+
+
+def _chequear(cola=None, metodo=None, tipo=None):
+    if cola is not None and cola not in ("derecha", "izquierda", "bilateral"):
+        raise ValueError(f'cola = "{cola}" no existe. Usá "derecha", "izquierda" o "bilateral".')
+    if metodo is not None and metodo not in ("pool", "welch", "conocidos"):
+        raise ValueError(f'metodo = "{metodo}" no existe. Usá "pool", "welch" o "conocidos".')
+    if tipo is not None and tipo not in ("bilateral", "minimo", "maximo"):
+        raise ValueError(f'tipo = "{tipo}" no existe. Usá "bilateral", "minimo" o "maximo".')
+
+
 # --- Paso 2: elegir el método ----------------------------------------
 
 # CUÁNDO: antes de comparar medias, si NO te dan los σ poblacionales.
@@ -66,13 +79,22 @@ def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10):
     j2 = cociente_varianzas(s_arr, s_ab)
     j2c = valor_critico(1, alfa, n_arr - 1, n_ab - 1, "derecha")
     rechaza = rechaza_h0(j2, j2c, "derecha")
-    print(f"Test F para elegir método (φ = {quien}, α = {alfa}):")
-    print(f"  H0: φ ≤ 1   H1: φ > 1   (cola derecha)")
-    print(f"  j² = {j2:.4f}   j²c = {j2c:.4f}")
+    print("--- Para la hoja: paso previo (Fisher) ---")
+    print("Como los desvíos poblacionales no se conocen, antes de comparar las medias se")
+    print("prueba si las varianzas se pueden suponer iguales. Se usa la distribución F de")
+    print("Fisher-Snedecor porque se comparan las varianzas de dos poblaciones independientes.")
+    print(f"φ = {quien} (arriba el desvío muestral más grande)")
+    print(f"H0: φ ≤ 1 (varianzas iguales)   H1: φ > 1   (cola derecha),  α = {_n(alfa, 2)}")
+    print(f"Valor crítico: j²c = φ0² · F(1-α ; n_arriba-1 ; n_abajo-1) = "
+          f"1 · F({_n(1 - alfa, 2)} ; {n_arr - 1} ; {n_ab - 1}) = {_n(j2c)}")
+    print(f"Muestra: j² = S_arriba² / S_abajo² = {_n(s_arr)}² / {_n(s_ab)}² = {_n(j2)}")
     if rechaza:
-        print("  Se rechaza H0 -> varianzas DISTINTAS -> método de Welch")
+        print(f"{_n(j2)} ≥ {_n(j2c)} -> se rechaza H0 -> varianzas DISTINTAS -> método de Welch")
+        print("------------------------------------------")
         return "welch"
-    print("  No se rechaza H0 -> varianzas supuestas IGUALES -> método Pool")
+    print(f"{_n(j2)} < {_n(j2c)} -> no se rechaza H0 -> varianzas supuestas IGUALES -> "
+          f"método Pool (desvío amalgamado)")
+    print("------------------------------------------")
     return "pool"
 
 
@@ -166,21 +188,49 @@ def rechaza_h0_diferencia(d, dc, cola):
 # CUÁNDO: querés todo el ensayo de una, impreso para la hoja.
 # PARA QUÉ: imprime gl, error estándar, d, dc y la decisión. Devuelve True/False.
 def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1):
+    _chequear(cola=cola, metodo=metodo)
     gl = grados_libertad(metodo, n1, s1, n2, s2, h)
     se = error_estandar(metodo, n1, s1, n2, s2, h)
     d = diferencia_muestral(x1, x2, h)
     dc = valor_critico_diferencia(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h)
     rechaza = rechaza_h0_diferencia(d, dc, cola)
-    print(f"Método {metodo}" + (f", gl = {gl}" if gl else ", Normal (Z)"))
+    param = "δ = μ1 - μ2" if h == 1 else f"δ* = μ1 - h·μ2 (h = {_n(h, 2)})"
+    signo = {"derecha": (">", "≤"), "izquierda": ("<", "≥"), "bilateral": ("≠", "=")}[cola]
+    print("--- Para la hoja: comparación de medias ---")
+    print(f"Parámetro: {param}")
+    print(f"H0: {param.split(' =')[0]} {signo[1]} {_n(delta0, 2)}   "
+          f"H1: {param.split(' =')[0]} {signo[0]} {_n(delta0, 2)}   (cola {cola}),  α = {_n(alfa, 2)}")
     if metodo == "pool":
-        print(f"  Sa (desvío amalgamado) = {desvio_amalgamado(n1, s1, n2, s2):.4f}")
-    print(f"  Error estándar = {se:.4f}")
-    print(f"  d = x̄1 - {h}·x̄2 = {d:.4f}" if h != 1 else f"  d = x̄1 - x̄2 = {d:.4f}")
-    if cola == "bilateral":
-        print(f"  dc = {dc[0]:.4f} y {dc[1]:.4f}")
+        sa = desvio_amalgamado(n1, s1, n2, s2)
+        print("Se usa t de Student con desvío amalgamado (Pool), porque los desvíos poblacionales")
+        print("no se conocen y las varianzas se suponen iguales.")
+        print(f"Sa = raíz(((n1-1)·S1² + (n2-1)·S2²)/(n1+n2-2)) = {_n(sa)}")
+        print(f"σ_d = Sa · raíz(1/n1 + h²/n2) = {_n(se)}      gl = n1 + n2 - 2 = {gl}")
+    elif metodo == "welch":
+        print("Se usa t de Student con el método de Welch, porque los desvíos poblacionales")
+        print("no se conocen y las varianzas son distintas.")
+        print(f"σ_d = raíz(S1²/n1 + h²·S2²/n2) = {_n(se)}      gl (Aspin-Welch, para abajo) = {gl}")
     else:
-        print(f"  dc = {dc:.4f}   (cola {cola})")
-    print("  -> SE RECHAZA H0" if rechaza else "  -> NO se rechaza H0")
+        print("Se usa la Normal (Z), porque los desvíos poblacionales son conocidos.")
+        print(f"σ_d = raíz(σ1²/n1 + h²·σ2²/n2) = {_n(se)}")
+    tabla = "Z" if metodo == "conocidos" else f"t(gl = {gl})"
+    if cola == "bilateral":
+        print(f"Valor crítico: dc = δ0 ± {tabla}(1-α/2) · σ_d = {_n(dc[0])} y {_n(dc[1])}")
+        regla = f"si d queda por fuera de [{_n(dc[0])} ; {_n(dc[1])}], se rechaza H0"
+    elif cola == "derecha":
+        print(f"Valor crítico: dc = δ0 + {tabla}(1-α) · σ_d = {_n(dc)}")
+        regla = f"si d ≥ {_n(dc)}, se rechaza H0"
+    else:
+        print(f"Valor crítico: dc = δ0 - {tabla}(1-α) · σ_d = {_n(dc)}")
+        regla = f"si d ≤ {_n(dc)}, se rechaza H0"
+    print(f"Regla de decisión: {regla}")
+    if h == 1:
+        print(f"Muestra: d = x̄1 - x̄2 = {_n(x1)} - {_n(x2)} = {_n(d)}")
+    else:
+        print(f"Muestra: d* = x̄1 - h·x̄2 = {_n(x1)} - {_n(h, 2)}·{_n(x2)} = {_n(d)}")
+    print("-> SE RECHAZA H0 (se puede afirmar H1)" if rechaza
+          else "-> NO se rechaza H0 (no hay pruebas suficientes para H1)")
+    print("-------------------------------------------")
     return rechaza
 
 
@@ -192,16 +242,38 @@ def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1):
 #   tipo = "bilateral" -> (A, B)  entre cuánto y cuánto
 #          "minimo"    -> A       diferencia mínima garantizada (δ ≥ A)
 #          "maximo"    -> B       diferencia máxima esperada   (δ ≤ B)
-def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilateral"):
+def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilateral", mostrar=True):
+    _chequear(metodo=metodo, tipo=tipo)
     alfa = 1 - confianza
     gl = grados_libertad(metodo, n1, s1, n2, s2)
     se = error_estandar(metodo, n1, s1, n2, s2)
     d = x1 - x2
+    tabla = "Z" if metodo == "conocidos" else f"t(gl = {gl})"
+    if mostrar:
+        print("--- Para la hoja: estimación de δ = μ1 - μ2 ---")
+        print(f"Método {metodo}. d = x̄1 - x̄2 = {_n(d)},  σ_d = {_n(se)},  confianza = {confianza:.0%}")
     if tipo == "bilateral":
-        e = _fractil(metodo, 1 - alfa / 2, gl) * se
-        return (d - e, d + e)
-    e = _fractil(metodo, 1 - alfa, gl) * se
-    return d - e if tipo == "minimo" else d + e
+        k = _fractil(metodo, 1 - alfa / 2, gl)
+        A, B = d - k * se, d + k * se
+        if mostrar:
+            print(f"A ; B = d ∓ {tabla}(1-α/2) · σ_d = {_n(d)} ∓ {_n(k)} · {_n(se)}")
+            print(f"P({_n(A)} ≤ δ ≤ {_n(B)}) = {confianza:.0%}")
+            print("-----------------------------------------------")
+        return (A, B)
+    k = _fractil(metodo, 1 - alfa, gl)
+    if tipo == "minimo":
+        A = d - k * se
+        if mostrar:
+            print(f"A = d - {tabla}(1-α) · σ_d = {_n(d)} - {_n(k)} · {_n(se)} = {_n(A)}")
+            print(f"P(δ ≥ {_n(A)}) = {confianza:.0%}   (diferencia MÍNIMA esperada)")
+            print("-----------------------------------------------")
+        return A
+    B = d + k * se
+    if mostrar:
+        print(f"B = d + {tabla}(1-α) · σ_d = {_n(d)} + {_n(k)} · {_n(se)} = {_n(B)}")
+        print(f"P(δ ≤ {_n(B)}) = {confianza:.0%}   (diferencia MÁXIMA esperada)")
+        print("-----------------------------------------------")
+    return B
 
 
 # CUÁNDO: "¿qué diferencia porcentual mínima se puede garantizar?",

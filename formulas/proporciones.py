@@ -43,6 +43,26 @@ from scipy.stats import binom, norm
 from scipy.optimize import brentq
 
 
+def _n(x, dec=4):
+    return f"{x:.{dec}f}".replace(".", ",")
+
+
+def _pct(x):
+    return f"{x * 100:.2f}".replace(".", ",") + "%"
+
+
+def _chequear_cola(cola, permitidas=("derecha", "izquierda")):
+    if cola not in permitidas:
+        raise ValueError(
+            f'cola = "{cola}" no existe. Usá ' + " o ".join(f'"{c}"' for c in permitidas)
+            + '. (Ojo: "maximo" y "minimo" son para el tipo de los intervalos, no para la cola.)')
+
+
+def _chequear_tipo(tipo):
+    if tipo not in ("bilateral", "maximo", "minimo"):
+        raise ValueError(f'tipo = "{tipo}" no existe. Usá "bilateral", "maximo" o "minimo".')
+
+
 # --- Las dos acumuladas del apunte ------------------------------------
 
 # Gb(r/n ; p) = P(R ≥ r)   (acumulada derecha)
@@ -66,6 +86,7 @@ def Fb(r, n, p):
 #                                    se rechaza si r ≤ rc
 # Devuelve None si con ese n no se puede rechazar nunca.
 def valor_critico_proporcion(p0, n, alfa, cola):
+    _chequear_cola(cola)
     if cola == "derecha":
         for rc in range(0, n + 2):
             if Gb(rc, n, p0) <= alfa:
@@ -96,23 +117,41 @@ def alfa_a_posteriori(r, n, p0, cola):
 
 
 # CUÁNDO: querés todo el ensayo de una, impreso para la hoja.
-# PARA QUÉ: imprime rc, α real, la condición de rechazo, α* y la decisión.
+# PARA QUÉ: imprime el planteo, las fórmulas, rc, la regla de decisión
+#   y la conclusión, listo para copiar en la hoja. Devuelve True/False.
 def ensayo_proporcion(p0, n, r, alfa, cola):
+    _chequear_cola(cola)
     rc = valor_critico_proporcion(p0, n, alfa, cola)
-    print(f"p̂ = r/n = {r}/{n} = {r / n:.4f}")
+    a_post = alfa_a_posteriori(r, n, p0, cola)
+    signo_h0, signo_h1 = ("≤", ">") if cola == "derecha" else ("≥", "<")
+    print("--- Para la hoja ---")
+    print(f"Modelo Binomial (proceso de Bernoulli): cada unidad es éxito o no, "
+          f"n = {n}, p0 = {_n(p0)}.")
+    print(f"H0: p {signo_h0} {_n(p0)}   H1: p {signo_h1} {_n(p0)}   "
+          f"(cola {cola}),  α = {_n(alfa)}")
     if rc is None:
-        print("  Con este n no se puede rechazar H0 con ese α.")
+        print("Con este n no existe un rc que cumpla el riesgo pedido: no se puede rechazar H0.")
         return False
     if cola == "derecha":
-        print(f"  rc = {rc}   (α real = Gb({rc}/{n} ; {p0}) = {Gb(rc, n, p0):.4f})")
-        print(f"  Condición de rechazo: si r ≥ {rc} -> se rechaza H0")
+        print(f"Valor crítico: el MENOR rc tal que Gb(rc/n ; p0) ≤ α")
+        print(f"   rc = {rc}   porque Gb({rc}/{n} ; {_n(p0)}) = {_n(Gb(rc, n, p0))} ≤ {_n(alfa)}")
+        print(f"Regla de decisión: si en {n} unidades se encuentran {rc} o MÁS éxitos, "
+              f"se rechaza H0.")
     else:
-        print(f"  rc = {rc}   (α real = Fb({rc}/{n} ; {p0}) = {Fb(rc, n, p0):.4f})")
-        print(f"  Condición de rechazo: si r ≤ {rc} -> se rechaza H0")
-    a_post = alfa_a_posteriori(r, n, p0, cola)
+        print(f"Valor crítico: el MAYOR rc tal que Fb(rc/n ; p0) ≤ α")
+        print(f"   rc = {rc}   porque Fb({rc}/{n} ; {_n(p0)}) = {_n(Fb(rc, n, p0))} ≤ {_n(alfa)}")
+        print(f"Regla de decisión: si en {n} unidades se encuentran {rc} o MENOS éxitos, "
+              f"se rechaza H0.")
     rechaza = rechaza_h0_proporcion(r, rc, cola)
-    print(f"  r = {r}   α* (a posteriori) = {a_post:.4f}")
-    print("  -> SE RECHAZA H0" if rechaza else "  -> NO se rechaza H0")
+    print(f"Muestra: r = {r}   (p̂ = r/n = {r}/{n} = {_n(r / n)})")
+    if rechaza:
+        print(f"r = {r} entra en la regla -> SE RECHAZA H0 (se puede afirmar H1).")
+    else:
+        print(f"r = {r} no entra en la regla -> NO se rechaza H0 (no hay pruebas suficientes para H1).")
+    fn = "Gb" if cola == "derecha" else "Fb"
+    print(f"Verificación a posteriori: α* = {fn}({r}/{n} ; {_n(p0)}) = {_n(a_post)} "
+          f"{'≤' if a_post <= alfa else '>'} α = {_n(alfa)} -> misma decisión.")
+    print("--------------------")
     return rechaza
 
 
@@ -122,10 +161,21 @@ def ensayo_proporcion(p0, n, r, alfa, cola):
 #   "de cambiar", "de rechazar") es 1 - β.
 #   cola "derecha":   β = Fb(rc - 1 / n ; p1)
 #   cola "izquierda": β = Gb(rc + 1 / n ; p1)
-def beta_proporcion(rc, n, p1, cola):
+def beta_proporcion(rc, n, p1, cola, mostrar=True):
+    _chequear_cola(cola)
     if cola == "derecha":
-        return Fb(rc - 1, n, p1)
-    return Gb(rc + 1, n, p1)
+        beta = Fb(rc - 1, n, p1)
+        formula = f"β = Fb(rc-1 / n ; p1) = Fb({rc - 1}/{n} ; {_n(p1)})"
+    else:
+        beta = Gb(rc + 1, n, p1)
+        formula = f"β = Gb(rc+1 / n ; p1) = Gb({rc + 1}/{n} ; {_n(p1)})"
+    if mostrar:
+        print("--- Para la hoja ---")
+        print("β = probabilidad de NO rechazar H0 cuando en realidad p = p1.")
+        print(f"{formula} = {_n(beta)}")
+        print(f"Probabilidad de detectar (potencia) = 1 - β = {_n(1 - beta)}")
+        print("--------------------")
+    return beta
 
 
 # CUÁNDO: "determinar el tamaño de muestra y la condición de rechazo"
@@ -135,7 +185,7 @@ def beta_proporcion(rc, n, p1, cola):
 def n_ensayo_proporcion(p0, p1, alfa, beta, cola, n_max=20000):
     for n in range(1, n_max + 1):
         rc = valor_critico_proporcion(p0, n, alfa, cola)
-        if rc is not None and beta_proporcion(rc, n, p1, cola) <= beta:
+        if rc is not None and beta_proporcion(rc, n, p1, cola, mostrar=False) <= beta:
             return n, rc
     return None
 
@@ -149,7 +199,8 @@ def n_ensayo_proporcion(p0, p1, alfa, beta, cola, n_max=20000):
 #   tipo = "bilateral" -> (A, B)
 #          "maximo"    -> B  con Fb(r/n ; B) = α   (porcentaje máximo)
 #          "minimo"    -> A  con Gb(r/n ; A) = α   (porcentaje mínimo)
-def intervalo_proporcion(r, n, confianza, tipo="bilateral"):
+def intervalo_proporcion(r, n, confianza, tipo="bilateral", mostrar=True):
+    _chequear_tipo(tipo)
     alfa = 1 - confianza
     cola = alfa / 2 if tipo == "bilateral" else alfa
 
@@ -159,11 +210,31 @@ def intervalo_proporcion(r, n, confianza, tipo="bilateral"):
     def limite_B(prob):
         return 1.0 if r == n else brentq(lambda p: Fb(r, n, p) - prob, 1e-12, 1 - 1e-12)
 
+    if mostrar:
+        print("--- Para la hoja ---")
+        print(f"Estimación exacta con el modelo Binomial: r = {r}, n = {n}, "
+              f"p̂ = {_n(r / n)}, confianza = {_n(confianza, 2)}")
     if tipo == "bilateral":
-        return (limite_A(cola), limite_B(cola))
+        A, B = limite_A(cola), limite_B(cola)
+        if mostrar:
+            print(f"Gb(r/n ; A) = α/2  ->  Gb({r}/{n} ; A) = {_n(cola)}  ->  A = {_n(A)}")
+            print(f"Fb(r/n ; B) = α/2  ->  Fb({r}/{n} ; B) = {_n(cola)}  ->  B = {_n(B)}")
+            print(f"P({_pct(A)} ≤ p ≤ {_pct(B)}) = {confianza:.0%}")
+            print("--------------------")
+        return (A, B)
     if tipo == "maximo":
-        return limite_B(cola)
-    return limite_A(cola)
+        B = limite_B(cola)
+        if mostrar:
+            print(f"Fb(r/n ; B) = α  ->  Fb({r}/{n} ; B) = {_n(cola)}  ->  B = {_n(B)}")
+            print(f"P(p ≤ {_pct(B)}) = {confianza:.0%}   (porcentaje MÁXIMO)")
+            print("--------------------")
+        return B
+    A = limite_A(cola)
+    if mostrar:
+        print(f"Gb(r/n ; A) = α  ->  Gb({r}/{n} ; A) = {_n(cola)}  ->  A = {_n(A)}")
+        print(f"P(p ≥ {_pct(A)}) = {confianza:.0%}   (porcentaje MÍNIMO)")
+        print("--------------------")
+    return A
 
 
 # CUÁNDO: necesitás el error o la relación de un intervalo (A, B).
@@ -184,17 +255,33 @@ def reducir(valor, porcentaje):
 
 # CUÁNDO: "¿cuántas unidades para un error de ...?" (aprox. Normal)
 # PARA QUÉ: n = (Z / e)² · p̂ · (1 - p̂) + 1   (redondeado para arriba)
-def n_para_error_proporcion(p_hat, e, confianza):
+def n_para_error_proporcion(p_hat, e, confianza, mostrar=True):
     z = norm.ppf(1 - (1 - confianza) / 2)
-    return int(-(-((z / e) ** 2 * p_hat * (1 - p_hat) + 1) // 1))
+    n_real = (z / e) ** 2 * p_hat * (1 - p_hat) + 1
+    n = int(-(-n_real // 1))
+    if mostrar:
+        print("--- Para la hoja ---")
+        print("Aproximación Normal: n = (Z / e)² · p̂ · (1 - p̂) + 1")
+        print(f"n = ({_n(z)} / {_n(e)})² · {_n(p_hat)} · {_n(1 - p_hat)} + 1 = {_n(n_real, 2)} -> n = {n}")
+        print("(Las unidades MÁS son: n nuevo - n que ya tenías.)")
+        print("--------------------")
+    return n
 
 
 # CUÁNDO: "¿cuántas unidades para reducir la relación de los límites?"
 #         (aprox. Normal, fórmula del apunte de Estimación)
 # PARA QUÉ: n = ((R + 1) / (R - 1) · Z)² · (1/p̂ - 1) + 1
-def n_para_relacion_proporcion(p_hat, R, confianza):
+def n_para_relacion_proporcion(p_hat, R, confianza, mostrar=True):
     if R <= 1:
         raise ValueError("La relación objetivo tiene que ser mayor que 1.")
     z = norm.ppf(1 - (1 - confianza) / 2)
-    n = ((R + 1) / (R - 1) * z) ** 2 * (1 / p_hat - 1) + 1
-    return int(-(-n // 1))
+    n_real = ((R + 1) / (R - 1) * z) ** 2 * (1 / p_hat - 1) + 1
+    n = int(-(-n_real // 1))
+    if mostrar:
+        print("--- Para la hoja ---")
+        print("Aproximación Normal: n = ((R + 1)/(R - 1) · Z)² · (1/p̂ - 1) + 1")
+        print(f"n = (({_n(R)} + 1)/({_n(R)} - 1) · {_n(z)})² · (1/{_n(p_hat)} - 1) + 1 "
+              f"= {_n(n_real, 2)} -> n = {n}")
+        print("(Las unidades MÁS son: n nuevo - n que ya tenías.)")
+        print("--------------------")
+    return n

@@ -187,7 +187,13 @@ def _imprimir_tabla(titulo, etiquetas, fo, fe, probs=None):
 #                (p = 0). Ej: {"mu": 20, "sigma": 2.5}
 # Devuelve True si se rechaza H0 (los datos NO siguen el modelo).
 def bondad_ajuste(clases, modelo, alfa=0.05, parametros=None):
-    print(f"H0: los datos siguen el modelo {modelo}.   α = {alfa}")
+    if modelo not in DOMINIO:
+        raise ValueError(f'modelo = "{modelo}" no existe. Usá: ' + ", ".join(DOMINIO))
+    print("--- Para la hoja: bondad de ajuste ---")
+    print("Se usa la prueba Chi cuadrado de bondad de ajuste: se comparan las frecuencias")
+    print("observadas (Fo) con las esperadas según el modelo (Fe = n · P(clase)).")
+    print("χ² = Σ (Fo - Fe)² / Fe ;  gl = k - 1 - p ;  se rechaza H0 si χ² > χ²(1-α ; gl)")
+    print(f"H0: los datos siguen el modelo {modelo}.   H1: no lo siguen.   Cola derecha, α = {alfa}")
     if parametros is None:
         parametros = estimar_parametros(modelo, clases)
         p_estimados = len(parametros)
