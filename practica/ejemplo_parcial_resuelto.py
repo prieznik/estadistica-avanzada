@@ -1,5 +1,5 @@
 # =====================================================================
-#  Guía de Problemas - Tema VI, problema 20 (marcas A y B, duración)
+#  EJEMPLO DE REFERENCIA - Guía, Tema VI, problema 20 (marcas A y B)
 #  EJEMPLO COMPLETO: es un "segundo parcial" entero y está resuelto en la
 #  guía (págs. 48-50), así que podés comparar cada número.
 # =====================================================================
@@ -12,11 +12,7 @@
 # =====================================================================
 
 import _ruta
-from formulas.hipotesis import planteo
-from formulas.datos import n_agrupado, media_agrupada, desvio_agrupado, contar_debajo
-from formulas.medias import metodo_para_medias, ensayo_medias
-from formulas.chi_cuadrado import bondad_ajuste
-from formulas.proporciones import intervalo_proporcion
+from formulas import *
 
 marca_a = [(10, 12, 2), (12, 14, 6), (14, 16, 13), (16, 18, 18), (18, 20, 30),
            (20, 22, 22), (22, 24, 16), (24, 26, 5), (26, 28, 1)]
