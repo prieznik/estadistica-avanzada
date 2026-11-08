@@ -58,10 +58,10 @@ from scipy.stats import f
 # CUÁNDO: necesitás un valor de la tabla F.
 # PARA QUÉ: reemplaza buscar en la tabla, ej: F(0,10 ; 12 ; 20) = 0,4855
 #   probabilidad = área a la IZQUIERDA del valor (ej: 0.10)
-#   gl_num = n - 1 de la muestra que va ARRIBA
-#   gl_den = n - 1 de la muestra que va ABAJO
-def valor_f(probabilidad, gl_num, gl_den):
-    return float(f.ppf(probabilidad, gl_num, gl_den))
+#   gl_arriba = n - 1 de la muestra que va ARRIBA
+#   gl_abajo = n - 1 de la muestra que va ABAJO
+def valor_f(probabilidad, gl_arriba, gl_abajo):
+    return float(f.ppf(probabilidad, gl_arriba, gl_abajo))
 
 
 # CUÁNDO: ya tenés los desvíos muestrales de las dos poblaciones.
@@ -75,13 +75,13 @@ def cociente_varianzas(s_arriba, s_abajo):
 #   phi0  = relación de DESVÍOS de la hipótesis (ej: 0.8; si es igualdad, 1)
 #   alfa  = riesgo (ej: 0.10)
 #   cola  = "izquierda" (H1 dice menor) o "derecha" (H1 dice mayor)
-def valor_critico(phi0, alfa, gl_num, gl_den, cola):
+def valor_critico(phi0, alfa, gl_arriba, gl_abajo, cola):
     if cola not in ("derecha", "izquierda"):
         raise ValueError(f'cola = "{cola}" no existe. Usá "derecha" o "izquierda".')
     if cola == "izquierda":
-        return phi0 ** 2 * valor_f(alfa, gl_num, gl_den)
+        return phi0 ** 2 * valor_f(alfa, gl_arriba, gl_abajo)
     else:
-        return phi0 ** 2 * valor_f(1 - alfa, gl_num, gl_den)
+        return phi0 ** 2 * valor_f(1 - alfa, gl_arriba, gl_abajo)
 
 
 # CUÁNDO: ya tenés el cociente de la muestra y la línea.

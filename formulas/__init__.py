@@ -86,7 +86,7 @@ CHI CUADRADO
   contingencia(tabla_doble_entrada, alfa)
 
 TABLAS (si necesitás un valor suelto)
-  valor_f(prob, gl1, gl2), valor_t(prob, gl), valor_chi2(prob, gl)
+  valor_f(prob, gl_arriba, gl_abajo), valor_t(prob, gl), valor_chi2(prob, gl)
 
 Recordá: decimales con PUNTO (0.05) y porcentajes entre 0 y 1 (7% -> 0.07).
 ====================================================================
