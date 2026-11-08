@@ -2,7 +2,7 @@
 
 Funciones en Python para resolver los ejercicios del segundo parcial de Estadística Aplicada (UADE, cátedra Dopazo): comparación de dos poblaciones (Fisher, t de Student, Z), proporciones (Bernoulli/Binomial) y Chi cuadrado.
 
-El programa **hace las cuentas e imprime un bloque "Para la hoja"** con las fórmulas, el valor crítico, la regla de decisión y la decisión. **El planteo lo hacés vos**: qué herramienta, cuál es la población 1, H0, H1, la cola y la conclusión en palabras del problema.
+El programa **hace las cuentas e imprime un bloque "Para la hoja"** en el orden de la hoja: hipótesis, justificación, muestra, valor crítico, CR (condición de rechazo), RD (regla de decisión) y decisión, con cada cuenta en tres renglones (fórmula, reemplazo, resultado). Con `nombres=("B", "A")` escribe μB y μA en vez de μ1 y μ2. **El planteo lo hacés vos**: qué herramienta, cuál es la población 1, H0, H1, la cola y la conclusión en palabras del problema.
 
 ## Instalación (una sola vez)
 

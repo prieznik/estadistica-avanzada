@@ -126,39 +126,46 @@ def ensayo_proporcion(p0, n, r, alfa, cola):
     a_post = alfa_a_posteriori(r, n, p0, cola)
     signo_h0, signo_h1 = ("≤", ">") if cola == "derecha" else ("≥", "<")
     titulo("Ensayo de una proporción (Binomial)")
-    seccion("Justificación")
-    linea("Modelo Binomial (proceso de Bernoulli): cada unidad es éxito o no.")
-    linea(f"n = {n}   ·   p0 = {_n(p0)}")
     seccion("Hipótesis")
     linea(f"H0: p {signo_h0} {_n(p0)}")
     linea(f"H1: p {signo_h1} {_n(p0)}")
     linea(f"Cola {cola}   ·   α = {_n(alfa)}")
+    seccion("Justificación")
+    linea("Modelo Binomial (proceso de Bernoulli): cada unidad es éxito o no,")
+    linea(f"con probabilidad constante. n = {n}, p0 = {_n(p0)}.")
+    seccion("Muestra")
+    linea(f"r = {r} éxitos en n = {n}   (p̂ = r/n = {r}/{n} = {_n(r / n)})")
+    seccion("Valor crítico")
     if rc is None:
+        linea("Con este n no existe un rc que cumpla el riesgo pedido.")
         seccion("Decisión")
-        flecha("Con este n no existe un rc que cumpla el riesgo pedido: no se puede rechazar H0.")
+        flecha("No se puede rechazar H0.")
         fin()
         return False
-    seccion("Valor crítico")
     if cola == "derecha":
-        linea("El MENOR rc tal que Gb(rc/n ; p0) ≤ α")
-        linea(f"rc = {rc}   porque Gb({rc}/{n} ; {_n(p0)}) = {_n(Gb(rc, n, p0))} ≤ {_n(alfa)}")
-        regla = f"Si en {n} unidades hay {rc} o MÁS éxitos, se rechaza H0"
+        linea("rc = el MENOR valor tal que Gb(rc/n ; p0) ≤ α")
+        linea(f"   → Gb({rc}/{n} ; {_n(p0)}) = {_n(Gb(rc, n, p0))} ≤ {_n(alfa)}")
+        if rc - 1 >= 0:
+            linea(f"     (con {rc - 1}: Gb({rc - 1}/{n} ; {_n(p0)}) = {_n(Gb(rc - 1, n, p0))} > {_n(alfa)})")
+        linea(f"rc = {rc}")
+        cr = f"Si r ≥ {rc}  →  se rechaza H0"
     else:
-        linea("El MAYOR rc tal que Fb(rc/n ; p0) ≤ α")
-        linea(f"rc = {rc}   porque Fb({rc}/{n} ; {_n(p0)}) = {_n(Fb(rc, n, p0))} ≤ {_n(alfa)}")
-        regla = f"Si en {n} unidades hay {rc} o MENOS éxitos, se rechaza H0"
-    seccion("Regla de decisión")
-    linea(regla)
+        linea("rc = el MAYOR valor tal que Fb(rc/n ; p0) ≤ α")
+        linea(f"   → Fb({rc}/{n} ; {_n(p0)}) = {_n(Fb(rc, n, p0))} ≤ {_n(alfa)}")
+        if rc + 1 <= n:
+            linea(f"     (con {rc + 1}: Fb({rc + 1}/{n} ; {_n(p0)}) = {_n(Fb(rc + 1, n, p0))} > {_n(alfa)})")
+        linea(f"rc = {rc}")
+        cr = f"Si r ≤ {rc}  →  se rechaza H0"
     rechaza = rechaza_h0_proporcion(r, rc, cola)
-    seccion("Muestra")
-    linea(f"r = {r}   (p̂ = r/n = {r}/{n} = {_n(r / n)})")
+    seccion("CR (condición de rechazo)")
+    linea(cr)
+    seccion("RD (regla de decisión)")
+    linea(f"Si se rechaza H0  →  se puede afirmar H1 (p {signo_h1} {_n(p0)})")
+    linea("[completá con la acción del problema: ej. se rechaza el lote]")
     seccion("Decisión")
-    if rechaza:
-        linea(f"r = {r} entra en la regla")
-        flecha("SE RECHAZA H0 (se puede afirmar H1)")
-    else:
-        linea(f"r = {r} no entra en la regla")
-        flecha("NO se rechaza H0 (no hay pruebas suficientes para H1)")
+    linea(f"r = {r}  {'entra en' if rechaza else 'no entra en'} la CR")
+    flecha("SE RECHAZA H0 (se puede afirmar H1)" if rechaza
+           else "NO se rechaza H0 (no hay pruebas suficientes para H1)")
     fn = "Gb" if cola == "derecha" else "Fb"
     seccion("Verificación a posteriori")
     linea(f"α* = {fn}({r}/{n} ; {_n(p0)}) = {_n(a_post)} "

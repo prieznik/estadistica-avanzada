@@ -117,9 +117,11 @@ def rechaza_h0(cociente, critico, cola, mostrar=True):
 # PARA QUÉ: hace todo el ensayo e imprime el bloque para la hoja.
 #   phi0 = 1 si se pregunta solo "más/menos variable"; 0.8 si "reduce más de 20%"
 #   la muestra "arriba" es la que nombra la frase.
-def ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola):
+def ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola,
+                     nombres=("1", "2")):
     if cola not in ("derecha", "izquierda"):
         raise ValueError(f'cola = "{cola}" no existe. Usá "derecha" o "izquierda".')
+    a, b = nombres
     s0, s1 = ("≤", ">") if cola == "derecha" else ("≥", "<")
     gl1, gl2 = n_arriba - 1, n_abajo - 1
     prob = alfa if cola == "izquierda" else 1 - alfa
@@ -128,33 +130,38 @@ def ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola):
     j2c = valor_critico(phi0, alfa, gl1, gl2, cola, mostrar=False)
     j2 = cociente_varianzas(s_arriba, s_abajo, mostrar=False)
     rechaza = rechaza_h0(j2, j2c, cola, mostrar=False)
+    lado = f"σ{b}" if phi0 == 1 else f"{_n(phi0, 2)}·σ{b}"
 
     titulo("Comparación de varianzas (F de Fisher)")
+    seccion("Hipótesis")
+    linea(f"H0: σ{a} {s0} {lado}")
+    linea(f"H1: σ{a} {s1} {lado}")
+    linea(f"Cola {cola}   ·   α = {_n(alfa, 2)}")
+    linea(f"(En las fórmulas: φ = σ{a}/σ{b}   y   φ0 = {_n(phi0, 2)})")
     seccion("Justificación")
     linea("Se usa la distribución F de Fisher-Snedecor porque se comparan")
     linea("las varianzas (desvíos) de dos poblaciones independientes.")
-    seccion("Hipótesis")
-    linea("φ = σ_arriba / σ_abajo")
-    linea(f"H0: φ {s0} {_n(phi0, 2)}")
-    linea(f"H1: φ {s1} {_n(phi0, 2)}")
-    linea(f"Cola {cola}   ·   α = {_n(alfa, 2)}")
-    seccion("Valor crítico")
-    linea(f"j²c = φ0² · F({etiqueta} ; n_arriba-1 ; n_abajo-1)")
-    linea(f"    = {_n(phi0, 2)}² · F({_n(prob, 2)} ; {gl1} ; {gl2})")
-    linea(f"    = {_n(j2c)}")
-    regla = "j² ≥ j²c" if cola == "derecha" else "j² ≤ j²c"
-    seccion("Regla de decisión")
-    linea(f"Si {regla} = {_n(j2c)}, se rechaza H0")
     seccion("Muestra")
-    linea(f"j² = S_arriba² / S_abajo² = {_n(s_arriba)}² / {_n(s_abajo)}²")
+    linea(f"j² = S{a}² / S{b}²")
+    linea(f"   = {_n(s_arriba)}² / {_n(s_abajo)}²")
     linea(f"   = {_n(j2)}")
+    seccion("Valor crítico")
+    linea(f"j²c = φ0² · F({etiqueta} ; n{a}-1 ; n{b}-1)")
+    linea(f"    = {_n(phi0, 2)}² · F({_n(prob, 2)} ; {gl1} ; {gl2})")
+    linea(f"    = {_n(phi0 ** 2)} · {_n(F)}")
+    linea(f"    = {_n(j2c)}")
+    seccion("CR (condición de rechazo)")
+    linea(f"Si j² {'≥' if cola == 'derecha' else '≤'} {_n(j2c)}  →  se rechaza H0")
+    seccion("RD (regla de decisión)")
+    linea(f"Si se rechaza H0  →  se puede afirmar H1 (σ{a} {s1} {lado})")
+    linea("[completá con la acción del problema]")
     seccion("Decisión")
     if cola == "izquierda":
         signo = "≤" if rechaza else ">"
     else:
         signo = "≥" if rechaza else "<"
-    linea(f"{_n(j2)} {signo} {_n(j2c)}")
-    flecha("SE RECHAZA H0 (se puede afirmar H1)" if rechaza
-           else "NO se rechaza H0 (no hay pruebas suficientes para H1)")
+    linea(f"j² = {_n(j2)}  {signo}  {_n(j2c)}")
+    flecha(f"SE RECHAZA H0: se puede afirmar que σ{a} {s1} {lado}" if rechaza
+           else f"NO se rechaza H0: no hay pruebas suficientes de que σ{a} {s1} {lado}")
     fin()
     return rechaza

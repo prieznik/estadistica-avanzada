@@ -14,6 +14,11 @@
 #  2. AYUDA: qué hace cada función y qué datos le pasás
 # =====================================================================
 #
+#  CADA BLOQUE SALE EN ESTE ORDEN (copialo así en la hoja):
+#    Hipótesis -> Justificación -> Muestra -> Valor crítico -> CR -> RD -> Decisión
+#    CR = condición de rechazo (la cuenta: "si d ≥ dc se rechaza H0")
+#    RD = regla de decisión (qué se hace: "si se rechaza, se compra B")
+#
 #  REGLAS PARA ESCRIBIR LOS DATOS
 #    Decimales con PUNTO (0.05). Porcentajes entre 0 y 1 (7% -> 0.07).
 #    cola = "derecha" (H1 >) | "izquierda" (H1 <) | "bilateral" (H1 ≠, solo promedios)
@@ -37,29 +42,34 @@
 #  ---------------------------------------------------------------------
 #  Grupo 1 = el que nombra la frase ("B produce más que A" -> 1 = B, 2 = A).
 #  El orden de los datos siempre es: n1, x1, s1, n2, x2, s2.
+#  nombres=("B", "A") es opcional: hace que el bloque escriba μB y μA
+#  en vez de μ1 y μ2.
 #
 #  metodo = metodo_para_medias(n1, x1, s1, n2, x2, s2)
 #      Qué hace: el PASO PREVIO. Fisher con α = 10% para ver si las
 #      varianzas son iguales. Imprime el bloque para la hoja.
 #      Te devuelve: "pool" (iguales) o "welch" (distintas).
-#      Ej:  metodo = metodo_para_medias(nB, xB, sB, nA, xA, sA)
+#      Ej:  metodo = metodo_para_medias(nB, xB, sB, nA, xA, sA, nombres=("B", "A"))
 #
 #  ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1)
 #      Qué hace: el ensayo "¿se puede asegurar que 1 produce más que 2?".
 #      Le pasás:
 #        metodo  -> lo que te dio metodo_para_medias
 #                   ("conocidos" si te dan los σ: usa Z, sin paso previo)
-#        delta0  -> 0 casi siempre
+#        delta0  -> el número de la hipótesis escrita como resta.
+#                   Si la consigna NO da una cantidad ("B produce más que A")
+#                   -> delta0 = 0.  Solo si da una cantidad fija
+#                   ("5 unidades más") -> delta0 = 5.
 #        alfa    -> el riesgo de la consigna (0.05)
 #        cola    -> el signo de H1
 #        h       -> solo con porcentaje: "10% más" -> h=1.10; "10% menos" -> h=0.90
-#      Ej:  ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha")
-#      Ej:  ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha", h=1.10)
+#      Ej:  ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha", nombres=("B", "A"))
+#      Ej:  ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha", h=1.10, nombres=("B", "A"))
 #
 #  intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo)
 #      Qué hace: estima la diferencia μ1 - μ2.
 #      Le pasás: confianza (0.90) y tipo ("minimo" para "diferencia mínima").
-#      Ej:  intervalo_diferencia(metodo, 0.90, nB, xB, sB, nA, xA, sA, "minimo")
+#      Ej:  intervalo_diferencia(metodo, 0.90, nB, xB, sB, nA, xA, sA, "minimo", nombres=("B", "A"))
 #
 #  h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola)
 #      Qué hace: "¿qué porcentaje mínimo se puede garantizar?"
@@ -70,7 +80,7 @@
 #  ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola)
 #      Le pasás: phi0 = 1 (o 0.8 si "reduce más de un 20%"), el α de la
 #      consigna, y arriba el grupo que nombra la frase.
-#      Ej:  ensayo_varianzas(1, 0.05, nB, sB, nA, sA, "derecha")
+#      Ej:  ensayo_varianzas(1, 0.05, nB, sB, nA, sA, "derecha", nombres=("B", "A"))
 #
 #  ---------------------------------------------------------------------
 #  PROPORCIONES (un porcentaje: fallas, defectuosas, buenas...)

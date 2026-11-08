@@ -50,6 +50,7 @@
 
 from scipy.stats import t, norm
 from formulas.fisher import cociente_varianzas, valor_critico, rechaza_h0
+from formulas.fisher import valor_f as valor_f_
 from formulas._formato import titulo, seccion, linea, flecha, fin
 
 
@@ -72,32 +73,40 @@ def _chequear(cola=None, metodo=None, tipo=None):
 # PARA QUÉ: decidir si se amalgama ("pool") o se usa "welch".
 # Hace el test F como el apunte: desvío más grande arriba, cola derecha,
 # φ0 = 1, α = 10%. Imprime el planteo para que lo copies en la hoja.
-def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10):
+def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10, nombres=("1", "2")):
+    a, b = nombres
     if s1 >= s2:
-        s_arr, n_arr, s_ab, n_ab, quien = s1, n1, s2, n2, "σ1/σ2"
+        s_arr, n_arr, s_ab, n_ab, arr, ab = s1, n1, s2, n2, a, b
     else:
-        s_arr, n_arr, s_ab, n_ab, quien = s2, n2, s1, n1, "σ2/σ1"
+        s_arr, n_arr, s_ab, n_ab, arr, ab = s2, n2, s1, n1, b, a
     j2 = cociente_varianzas(s_arr, s_ab, mostrar=False)
+    F = valor_f_(1 - alfa, n_arr - 1, n_ab - 1)
     j2c = valor_critico(1, alfa, n_arr - 1, n_ab - 1, "derecha", mostrar=False)
     rechaza = rechaza_h0(j2, j2c, "derecha", mostrar=False)
+
     titulo("Paso previo: F de Fisher (¿varianzas iguales?)")
+    seccion("Hipótesis   (arriba el desvío muestral más grande)")
+    linea(f"H0: σ{arr} ≤ σ{ab}   (varianzas iguales)")
+    linea(f"H1: σ{arr} > σ{ab}")
+    linea(f"Cola derecha   ·   α = {_n(alfa, 2)}   (el paso previo siempre usa 10%)")
     seccion("Justificación")
-    linea("Los desvíos poblacionales no se conocen: antes de comparar las")
-    linea("medias se prueba si las varianzas se pueden suponer iguales.")
-    linea("Se usa la F de Fisher-Snedecor porque se comparan las varianzas")
-    linea("de dos poblaciones independientes.")
-    seccion("Hipótesis")
-    linea(f"φ = {quien}   (arriba el desvío muestral más grande)")
-    linea("H0: φ ≤ 1   (varianzas iguales)")
-    linea("H1: φ > 1")
-    linea(f"Cola derecha   ·   α = {_n(alfa, 2)}")
-    seccion("Valor crítico")
-    linea("j²c = φ0² · F(1-α ; n_arriba-1 ; n_abajo-1)")
-    linea(f"    = 1 · F({_n(1 - alfa, 2)} ; {n_arr - 1} ; {n_ab - 1})")
-    linea(f"    = {_n(j2c)}")
+    linea("Los desvíos poblacionales no se conocen: antes de comparar las medias")
+    linea("se prueba si las varianzas se pueden suponer iguales. Se usa la F de")
+    linea("Fisher porque se comparan varianzas de dos poblaciones independientes.")
     seccion("Muestra")
-    linea(f"j² = S_arriba² / S_abajo² = {_n(s_arr)}² / {_n(s_ab)}²")
+    linea(f"j² = S{arr}² / S{ab}²")
+    linea(f"   = {_n(s_arr)}² / {_n(s_ab)}²")
     linea(f"   = {_n(j2)}")
+    seccion("Valor crítico")
+    linea(f"j²c = φ0² · F(1-α ; n{arr}-1 ; n{ab}-1)")
+    linea(f"    = 1² · F({_n(1 - alfa, 2)} ; {n_arr - 1} ; {n_ab - 1})")
+    linea(f"    = 1 · {_n(F)}")
+    linea(f"    = {_n(j2c)}")
+    seccion("CR (condición de rechazo)")
+    linea(f"Si j² ≥ {_n(j2c)}  →  se rechaza H0")
+    seccion("RD (regla de decisión)")
+    linea("Si se rechaza H0  →  varianzas distintas  →  método de Welch")
+    linea("Si no se rechaza  →  varianzas iguales    →  método Pool")
     seccion("Decisión")
     if rechaza:
         linea(f"{_n(j2)} ≥ {_n(j2c)}  →  se rechaza H0")
@@ -105,7 +114,7 @@ def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10):
         fin()
         return "welch"
     linea(f"{_n(j2)} < {_n(j2c)}  →  no se rechaza H0")
-    flecha("varianzas supuestas IGUALES  →  método POOL (desvío amalgamado)")
+    flecha("varianzas supuestas IGUALES  →  método POOL")
     fin()
     return "pool"
 
@@ -198,69 +207,132 @@ def rechaza_h0_diferencia(d, dc, cola):
 
 
 # CUÁNDO: querés todo el ensayo de una, impreso para la hoja.
-# PARA QUÉ: imprime gl, error estándar, d, dc y la decisión. Devuelve True/False.
-def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1):
+# PARA QUÉ: imprime hipótesis, muestra, valor crítico, CR, RD y decisión.
+#   nombres = cómo se llaman los grupos, ej: ("B", "A") -> H0: μB ≤ μA
+def _imprimir_desvio_d(metodo, n1, s1, n2, s2, h, a, b):
+    """Imprime σ_d y gl en tres renglones: fórmula, reemplazo, resultado."""
+    hh = "" if h == 1 else "h²·"
+    hv = "" if h == 1 else f"{_n(h, 2)}²·"
+    se = error_estandar(metodo, n1, s1, n2, s2, h)
+    gl = grados_libertad(metodo, n1, s1, n2, s2, h)
+    if metodo == "pool":
+        sa = desvio_amalgamado(n1, s1, n2, s2)
+        linea(f"Sa  = raíz( ((n{a}-1)·S{a}² + (n{b}-1)·S{b}²) / (n{a} + n{b} - 2) )")
+        linea(f"    = raíz( ({n1 - 1}·{_n(s1)}² + {n2 - 1}·{_n(s2)}²) / {n1 + n2 - 2} )")
+        linea(f"    = {_n(sa)}")
+        linea()
+        linea(f"σ_d = Sa · raíz(1/n{a} + {hh}1/n{b})")
+        linea(f"    = {_n(sa)} · raíz(1/{n1} + {hv}1/{n2})")
+        linea(f"    = {_n(se)}")
+        linea()
+        linea(f"gl  = n{a} + n{b} - 2")
+        linea(f"    = {n1} + {n2} - 2")
+        linea(f"    = {gl}")
+    elif metodo == "welch":
+        va = s1 ** 2 / n1
+        vb = h ** 2 * s2 ** 2 / n2
+        nu = (va + vb) ** 2 / (va ** 2 / (n1 - 1) + vb ** 2 / (n2 - 1))
+        linea(f"σ_d = raíz( S{a}²/n{a} + {hh}S{b}²/n{b} )")
+        linea(f"    = raíz( {_n(s1)}²/{n1} + {hv}{_n(s2)}²/{n2} )")
+        linea(f"    = raíz( {_n(va)} + {_n(vb)} )")
+        linea(f"    = {_n(se)}")
+        linea()
+        linea(f"gl  = (S{a}²/n{a} + {hh}S{b}²/n{b})² / [ (S{a}²/n{a})²/(n{a}-1) + ({hh}S{b}²/n{b})²/(n{b}-1) ]")
+        linea(f"    = ({_n(va)} + {_n(vb)})² / [ {_n(va)}²/{n1 - 1} + {_n(vb)}²/{n2 - 1} ]")
+        linea(f"    = {_n(nu, 2)}  →  {gl}   (Aspin-Welch, se redondea para abajo)")
+    else:
+        linea(f"σ_d = raíz( σ{a}²/n{a} + {hh}σ{b}²/n{b} )")
+        linea(f"    = raíz( {_n(s1)}²/{n1} + {hv}{_n(s2)}²/{n2} )")
+        linea(f"    = {_n(se)}")
+    return se, gl
+
+
+def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1, nombres=("1", "2")):
     _chequear(cola=cola, metodo=metodo)
+    a, b = nombres
     gl = grados_libertad(metodo, n1, s1, n2, s2, h)
     se = error_estandar(metodo, n1, s1, n2, s2, h)
     d = diferencia_muestral(x1, x2, h)
     dc = valor_critico_diferencia(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h)
     rechaza = rechaza_h0_diferencia(d, dc, cola)
-    param = "δ = μ1 - μ2" if h == 1 else f"δ* = μ1 - h·μ2 (h = {_n(h, 2)})"
-    signo = {"derecha": (">", "≤"), "izquierda": ("<", "≥"), "bilateral": ("≠", "=")}[cola]
-    nombre = param.split(' =')[0]
+    s_h1, s_h0 = {"derecha": (">", "≤"), "izquierda": ("<", "≥"), "bilateral": ("≠", "=")}[cola]
+    lado = f"μ{b}" if h == 1 else f"{_n(h, 2)}·μ{b}"
     dn = "d" if h == 1 else "d*"
+    delta = "δ" if h == 1 else "δ*"
+
     titulo("Comparación de medias")
     seccion("Hipótesis")
-    linea(f"Parámetro: {param}")
-    linea(f"H0: {nombre} {signo[1]} {_n(delta0, 2)}")
-    linea(f"H1: {nombre} {signo[0]} {_n(delta0, 2)}")
+    if delta0 == 0:
+        linea(f"H0: μ{a} {s_h0} {lado}")
+        linea(f"H1: μ{a} {s_h1} {lado}")
+    else:
+        linea(f"H0: μ{a} - {lado} {s_h0} {_n(delta0, 2)}")
+        linea(f"H1: μ{a} - {lado} {s_h1} {_n(delta0, 2)}")
     linea(f"Cola {cola}   ·   α = {_n(alfa, 2)}")
+    linea(f"(En las fórmulas: {delta} = μ{a} - {lado}   y   δ0 = {_n(delta0, 2)})")
     seccion("Justificación")
     if metodo == "pool":
-        sa = desvio_amalgamado(n1, s1, n2, s2)
-        linea("t de Student con desvío amalgamado (Pool): los desvíos")
-        linea("poblacionales no se conocen y las varianzas se suponen iguales.")
-        seccion("Cálculos")
-        linea(f"Sa  = raíz(((n1-1)·S1² + (n2-1)·S2²)/(n1+n2-2)) = {_n(sa)}")
-        linea(f"σ_d = Sa · raíz(1/n1 + h²/n2) = {_n(se)}")
-        linea(f"gl  = n1 + n2 - 2 = {gl}")
+        linea("t de Student con desvío amalgamado (Pool): los desvíos poblacionales")
+        linea("no se conocen y las varianzas se suponen iguales (paso previo).")
     elif metodo == "welch":
         linea("t de Student con el método de Welch: los desvíos poblacionales")
-        linea("no se conocen y las varianzas son distintas.")
-        seccion("Cálculos")
-        linea(f"σ_d = raíz(S1²/n1 + h²·S2²/n2) = {_n(se)}")
-        linea(f"gl  = {gl}   (Aspin-Welch, redondeado para abajo)")
+        linea("no se conocen y las varianzas son distintas (paso previo).")
     else:
         linea("Normal (Z): los desvíos poblacionales son conocidos.")
-        seccion("Cálculos")
-        linea(f"σ_d = raíz(σ1²/n1 + h²·σ2²/n2) = {_n(se)}")
-    tabla = "Z" if metodo == "conocidos" else f"t(gl = {gl})"
-    seccion("Valor crítico")
-    if cola == "bilateral":
-        linea(f"dc = δ0 ± {tabla}(1-α/2) · σ_d")
-        linea(f"   = {_n(dc[0])}  y  {_n(dc[1])}")
-        regla = f"Si {dn} queda por fuera de [{_n(dc[0])} ; {_n(dc[1])}], se rechaza H0"
-    elif cola == "derecha":
-        linea(f"dc = δ0 + {tabla}(1-α) · σ_d")
-        linea(f"   = {_n(dc)}")
-        regla = f"Si {dn} ≥ {_n(dc)}, se rechaza H0"
-    else:
-        linea(f"dc = δ0 - {tabla}(1-α) · σ_d")
-        linea(f"   = {_n(dc)}")
-        regla = f"Si {dn} ≤ {_n(dc)}, se rechaza H0"
-    seccion("Regla de decisión")
-    linea(regla)
+
     seccion("Muestra")
     if h == 1:
-        linea(f"d = x̄1 - x̄2 = {_n(x1)} - {_n(x2)}")
+        linea(f"d = x̄{a} - x̄{b}")
+        linea(f"  = {_n(x1)} - {_n(x2)}")
         linea(f"  = {_n(d)}")
     else:
-        linea(f"d* = x̄1 - h·x̄2 = {_n(x1)} - {_n(h, 2)} · {_n(x2)}")
+        linea(f"d* = x̄{a} - h·x̄{b}")
+        linea(f"   = {_n(x1)} - {_n(h, 2)}·{_n(x2)}")
         linea(f"   = {_n(d)}")
+
+    seccion("Valor crítico")
+    _imprimir_desvio_d(metodo, n1, s1, n2, s2, h, a, b)
+    linea()
+    prob = 1 - alfa / 2 if cola == "bilateral" else 1 - alfa
+    k = _fractil(metodo, prob, gl)
+    et = "1-α/2" if cola == "bilateral" else "1-α"
+    if metodo == "conocidos":
+        linea(f"Z({et}) = Z({_n(prob, 3)}) = {_n(k)}")
+        tab, tabv = f"Z({et})", f"Z({_n(prob, 3)})"
+    else:
+        linea(f"t({et} ; gl) = t({_n(prob, 3)} ; {gl}) = {_n(k)}")
+        tab, tabv = f"t({et} ; gl)", f"t({_n(prob, 3)} ; {gl})"
+    linea()
+    sp = " " * len(dn + "c")
+    if cola == "bilateral":
+        linea(f"{dn}c = δ0 ± {tab} · σ_d")
+        linea(f"{sp} = {_n(delta0, 2)} ± {_n(k)} · {_n(se)}")
+        linea(f"{sp} = {_n(dc[0])}   y   {_n(dc[1])}")
+        cr = f"Si {dn} ≤ {_n(dc[0])}  o  {dn} ≥ {_n(dc[1])}  →  se rechaza H0"
+    elif cola == "derecha":
+        linea(f"{dn}c = δ0 + {tab} · σ_d")
+        linea(f"{sp} = {_n(delta0, 2)} + {_n(k)} · {_n(se)}")
+        linea(f"{sp} = {_n(dc)}")
+        cr = f"Si {dn} ≥ {_n(dc)}  →  se rechaza H0"
+    else:
+        linea(f"{dn}c = δ0 - {tab} · σ_d")
+        linea(f"{sp} = {_n(delta0, 2)} - {_n(k)} · {_n(se)}")
+        linea(f"{sp} = {_n(dc)}")
+        cr = f"Si {dn} ≤ {_n(dc)}  →  se rechaza H0"
+    seccion("CR (condición de rechazo)")
+    linea(cr)
+    seccion("RD (regla de decisión)")
+    linea(f"Si se rechaza H0  →  se puede afirmar H1 (μ{a} {s_h1} {lado})")
+    linea("[completá con la acción del problema: ej. se aconseja comprar]")
     seccion("Decisión")
-    flecha("SE RECHAZA H0 (se puede afirmar H1)" if rechaza
-           else "NO se rechaza H0 (no hay pruebas suficientes para H1)")
+    if cola == "bilateral":
+        linea(f"{dn} = {_n(d)}  " + ("queda afuera de" if rechaza else "queda dentro de")
+              + f"  [{_n(dc[0])} ; {_n(dc[1])}]")
+    else:
+        mayor = d >= dc
+        linea(f"{dn} = {_n(d)}  {'≥' if mayor else '<'}  {_n(dc)}")
+    flecha(f"SE RECHAZA H0: se puede afirmar que μ{a} {s_h1} {lado}" if rechaza
+           else f"NO se rechaza H0: no hay pruebas suficientes de que μ{a} {s_h1} {lado}")
     fin()
     return rechaza
 
@@ -273,49 +345,63 @@ def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1):
 #   tipo = "bilateral" -> (A, B)  entre cuánto y cuánto
 #          "minimo"    -> A       diferencia mínima garantizada (δ ≥ A)
 #          "maximo"    -> B       diferencia máxima esperada   (δ ≤ B)
-def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilateral", mostrar=True):
+def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilateral",
+                         mostrar=True, nombres=("1", "2")):
     _chequear(metodo=metodo, tipo=tipo)
+    a, b = nombres
     alfa = 1 - confianza
     gl = grados_libertad(metodo, n1, s1, n2, s2)
     se = error_estandar(metodo, n1, s1, n2, s2)
     d = x1 - x2
-    tabla = "Z" if metodo == "conocidos" else f"t(gl = {gl})"
-    if mostrar:
-        titulo("Estimación de δ = μ1 - μ2")
-        seccion("Datos")
-        linea(f"Método: {metodo}   ·   confianza = {_n(confianza, 2)}")
-        linea(f"d   = x̄1 - x̄2 = {_n(x1)} - {_n(x2)} = {_n(d)}")
-        linea(f"σ_d = {_n(se)}")
+    prob = 1 - alfa / 2 if tipo == "bilateral" else 1 - alfa
+    k = _fractil(metodo, prob, gl)
+    et = "1-α/2" if tipo == "bilateral" else "1-α"
+    if metodo == "conocidos":
+        tab, tabv = f"Z({et})", f"Z({_n(prob, 3)})"
+    else:
+        tab, tabv = f"t({et} ; gl)", f"t({_n(prob, 3)} ; {gl})"
     if tipo == "bilateral":
-        k = _fractil(metodo, 1 - alfa / 2, gl)
-        A, B = d - k * se, d + k * se
-        if mostrar:
-            seccion("Límites")
-            linea(f"A ; B = d ∓ {tabla}(1-α/2) · σ_d = {_n(d)} ∓ {_n(k)} · {_n(se)}")
-            seccion("Resultado")
-            flecha(f"P({_n(A)} ≤ δ ≤ {_n(B)}) = {_n(confianza, 2)}")
-            fin()
-        return (A, B)
-    k = _fractil(metodo, 1 - alfa, gl)
-    if tipo == "minimo":
-        A = d - k * se
-        if mostrar:
-            seccion("Límite inferior")
-            linea(f"A = d - {tabla}(1-α) · σ_d = {_n(d)} - {_n(k)} · {_n(se)}")
-            linea(f"  = {_n(A)}")
-            seccion("Resultado (diferencia MÍNIMA esperada)")
-            flecha(f"P(δ ≥ {_n(A)}) = {_n(confianza, 2)}")
-            fin()
-        return A
-    B = d + k * se
-    if mostrar:
+        res = (d - k * se, d + k * se)
+    elif tipo == "minimo":
+        res = d - k * se
+    else:
+        res = d + k * se
+    if not mostrar:
+        return res
+    titulo(f"Estimación de δ = μ{a} - μ{b}")
+    seccion("Datos")
+    linea(f"Método: {metodo}   ·   confianza = {_n(confianza, 2)}")
+    seccion("Muestra")
+    linea(f"d = x̄{a} - x̄{b}")
+    linea(f"  = {_n(x1)} - {_n(x2)}")
+    linea(f"  = {_n(d)}")
+    seccion("Desvío de d")
+    _imprimir_desvio_d(metodo, n1, s1, n2, s2, 1, a, b)
+    linea()
+    linea(f"{tab} = {tabv} = {_n(k)}")
+    if tipo == "bilateral":
+        seccion("Límites")
+        linea(f"A ; B = d ∓ {tab} · σ_d")
+        linea(f"      = {_n(d)} ∓ {_n(k)} · {_n(se)}")
+        linea(f"      = {_n(res[0])}  y  {_n(res[1])}")
+        seccion("Resultado")
+        flecha(f"P({_n(res[0])} ≤ μ{a} - μ{b} ≤ {_n(res[1])}) = {_n(confianza, 2)}")
+    elif tipo == "minimo":
+        seccion("Límite inferior")
+        linea(f"A = d - {tab} · σ_d")
+        linea(f"  = {_n(d)} - {_n(k)} · {_n(se)}")
+        linea(f"  = {_n(res)}")
+        seccion("Resultado (diferencia MÍNIMA esperada)")
+        flecha(f"P(μ{a} - μ{b} ≥ {_n(res)}) = {_n(confianza, 2)}")
+    else:
         seccion("Límite superior")
-        linea(f"B = d + {tabla}(1-α) · σ_d = {_n(d)} + {_n(k)} · {_n(se)}")
-        linea(f"  = {_n(B)}")
+        linea(f"B = d + {tab} · σ_d")
+        linea(f"  = {_n(d)} + {_n(k)} · {_n(se)}")
+        linea(f"  = {_n(res)}")
         seccion("Resultado (diferencia MÁXIMA esperada)")
-        flecha(f"P(δ ≤ {_n(B)}) = {_n(confianza, 2)}")
-        fin()
-    return B
+        flecha(f"P(μ{a} - μ{b} ≤ {_n(res)}) = {_n(confianza, 2)}")
+    fin()
+    return res
 
 
 # CUÁNDO: "¿qué diferencia porcentual mínima se puede garantizar?",
