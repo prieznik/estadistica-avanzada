@@ -88,7 +88,7 @@ def estadistico_chi2(fo, fe):
 def estimar_parametros(modelo, clases):
     x = media_agrupada(clases)
     s = desvio_agrupado(clases)
-    seccion("Parámetros estimados con x̄ y S de la tabla (p = 2)")
+    seccion("Paso 1 · Parámetros del modelo: no los dan, se estiman con x̄ y S (p = 2)")
     linea(f"x̄ = {x:.4f}   ·   S = {s:.4f}".replace(".", ","))
     if modelo == "normal":
         p = {"mu": x, "sigma": s}
@@ -137,15 +137,17 @@ def _acumulada(modelo, p, x):
 
 # PARA QUÉ: juntar clases vecinas hasta que todas tengan Fe ≥ 5.
 # Empieza por las puntas (como el apunte) y después revisa el medio.
-def amalgamar(etiquetas, fo, fe):
+def amalgamar(etiquetas, fo, fe, detalle=False):
     et, fo, fe = list(etiquetas), list(fo), list(fe)
+    grupos = [[(e, f)] for e, f in zip(etiquetas, fe)]
 
     def juntar(i, j):  # junta la clase j dentro de la i (vecinas)
         a, b = sorted((i, j))
         et[a] = f"{et[a].split(' a ')[0]} a {et[b].split(' a ')[-1]}"
         fo[a] += fo[b]
         fe[a] += fe[b]
-        del et[b], fo[b], fe[b]
+        grupos[a] = grupos[a] + grupos[b]
+        del et[b], fo[b], fe[b], grupos[b]
 
     while len(fe) > 1 and fe[0] < 5:
         juntar(0, 1)
@@ -155,6 +157,8 @@ def amalgamar(etiquetas, fo, fe):
         i = fe.index(min(fe))
         vecino = i - 1 if i == len(fe) - 1 or (i > 0 and fe[i - 1] < fe[i + 1]) else i + 1
         juntar(i, vecino)
+    if detalle:
+        return et, fo, fe, grupos
     return et, fo, fe
 
 
@@ -174,9 +178,9 @@ def _imprimir_tabla(nombre, etiquetas, fo, fe, probs=None):
         txt = f"{e:<18}{o:>8g}"
         if probs:
             txt += f"{probs[i]:>10.4f}"
-        linea(txt + f"{f:>10.2f}")
+        linea((txt + f"{f:>10.2f}").replace(".", ","))
     linea("-" * (36 + (10 if probs else 0)))
-    linea(f"{'Total':<18}{sum(fo):>8g}" + (" " * 10 if probs else "") + f"{sum(fe):>10.2f}")
+    linea((f"{'Total':<18}{sum(fo):>8g}" + (" " * 10 if probs else "") + f"{sum(fe):>10.2f}").replace(".", ","))
 
 
 # --- Bondad de ajuste --------------------------------------------------
@@ -205,7 +209,7 @@ def bondad_ajuste(clases, modelo, alfa=0.05, parametros=None):
         parametros = estimar_parametros(modelo, clases)
         p_estimados = len(parametros)
     else:
-        seccion("Parámetros dados (no se estiman, p = 0)")
+        seccion("Paso 1 · Parámetros del modelo: los da la consigna (p = 0)")
         linea(", ".join(f"{k} = {v}" for k, v in parametros.items()))
         p_estimados = 0
 
@@ -219,13 +223,48 @@ def bondad_ajuste(clases, modelo, alfa=0.05, parametros=None):
     n = n_agrupado(clases)
     etiquetas = [f"{_num(a)} a {_num(b)}" for a, b, _ in tramos]
     fo = [f for _, _, f in tramos]
-    probs = [_acumulada(modelo, parametros, b) - _acumulada(modelo, parametros, a) for a, b, _ in tramos]
+    acum = [(_acumulada(modelo, parametros, a), _acumulada(modelo, parametros, b)) for a, b, _ in tramos]
+    probs = [fb - fa for fa, fb in acum]
     fe = [n * pr for pr in probs]
-    _imprimir_tabla("Tabla (con las puntas agregadas)", etiquetas, fo, fe, probs)
 
-    et2, fo2, fe2 = amalgamar(etiquetas, fo, fe)
-    if len(et2) < len(etiquetas):
-        _imprimir_tabla("Después de amalgamar (todas las Fe ≥ 5)", et2, fo2, fe2)
+    seccion("Paso 2 · Agregar las puntas")
+    linea(f"La tabla va de {_num(clases[0][0])} a {_num(clases[-1][1])}, pero el modelo {modelo} va de "
+          f"{_num(minimo)} a +∞.")
+    agregadas = [etiquetas[0]] if tramos[0][2] == 0 and tramos[0][0] == minimo and clases[0][0] > minimo else []
+    agregadas.append(etiquetas[-1])
+    linea("Se agregan las clases " + " y ".join(f'"{e}"' for e in agregadas)
+          + " con Fo = 0 (en la muestra no hubo datos ahí).")
+
+    seccion("Paso 3 · Probabilidad y Fe de cada clase")
+    linea("P(clase) = F(hasta) - F(desde)     (F = acumulada del modelo)")
+    linea(f"Fe = n · P(clase)                  (n = {n})")
+    m = max(range(1, len(tramos) - 1), key=lambda t: fo[t]) if len(tramos) > 2 else 0
+    a_, b_, _ = tramos[m]
+    linea(f"Ejemplo, clase {etiquetas[m]}:")
+    if modelo == "normal":
+        mu, sg = parametros["mu"], parametros["sigma"]
+        za, zb = (a_ - mu) / sg, (b_ - mu) / sg
+        linea(f"   F({_num(b_)}) = Φ(({_num(b_)} - {mu:.2f}) / {sg:.2f}) = Φ({zb:.4f}) = {acum[m][1]:.4f}".replace(".", ","))
+        linea(f"   F({_num(a_)}) = Φ(({_num(a_)} - {mu:.2f}) / {sg:.2f}) = Φ({za:.4f}) = {acum[m][0]:.4f}".replace(".", ","))
+    else:
+        linea(f"   F({_num(b_)}) = {acum[m][1]:.4f}    F({_num(a_)}) = {acum[m][0]:.4f}".replace(".", ","))
+    linea(f"   P = {acum[m][1]:.4f} - {acum[m][0]:.4f} = {probs[m]:.4f}".replace(".", ","))
+    linea(f"   Fe = {n} · {probs[m]:.4f} = {fe[m]:.2f}".replace(".", ","))
+    _imprimir_tabla("Tabla con todas las clases", etiquetas, fo, fe, probs)
+
+    et2, fo2, fe2, grupos = amalgamar(etiquetas, fo, fe, detalle=True)
+    seccion("Paso 4 · Amalgamar: toda clase con Fe < 5 se junta con la vecina")
+    juntadas = [g for g in grupos if len(g) > 1]
+    if not juntadas:
+        linea("Todas las Fe son ≥ 5: no hace falta juntar.")
+    for g, e_new, f_new in zip(grupos, et2, fe2):
+        if len(g) > 1:
+            chicas = [f"{f:.2f}" for _, f in g if f < 5]
+            linea(" + ".join(f"[{e}  Fe {f:.2f}]" for e, f in g).replace(".", ","))
+            linea(f"   → {e_new}  Fe {f_new:.2f}   (porque {' y '.join(chicas)} < 5)".replace(".", ","))
+    if juntadas:
+        _imprimir_tabla("Tabla después de amalgamar", et2, fo2, fe2)
+    seccion(f"k = clases que quedan = {len(fe2)}")
 
     chi = estadistico_chi2(fo2, fe2)
     k = len(fe2)
