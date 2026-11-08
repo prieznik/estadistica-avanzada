@@ -41,7 +41,7 @@ El programa **hace las cuentas e imprime un bloque "Para la hoja"** con las fór
    from formulas import *
    ```
 
-   Con eso tenés **todas** las funciones. Si no te acordás cuál usar, escribí `ayuda()` y corré: te muestra la lista por tema.
+   Con eso tenés **todas** las funciones. La plantilla está ordenada así: **1. Consigna**, **2. Ayuda** (la lista de funciones por tema, comentada, para no tener que buscarla), **3. Datos de contexto** (planteo en papel + tablas), **4. Resolución** (las llamadas a las funciones y la conclusión de cada punto).
 4. **Corré** con el botón ▶ (arriba a la derecha).
 5. **Copiá el bloque "Para la hoja"** y escribí la conclusión en palabras del problema.
 
