@@ -133,7 +133,11 @@ ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha", h=1.10)
 # c
 intervalo_diferencia(metodo, 0.90, nB, xB, sB, nA, xA, sA, "minimo")
 
-# --- a) ---
+'''
+ADICIONAL 
+d) Con un riesgo del 5%, ¿se puede considerar que la producción diaria de la línea B sigue un modelo Normal?
+'''
+bondad_ajuste(tablaB, "normal", 0.05)
 
 
 # Conclusión en palabras:
