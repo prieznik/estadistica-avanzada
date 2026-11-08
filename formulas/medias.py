@@ -58,6 +58,10 @@ def _n(x, dec=4):
     return f"{x:.{dec}f}".replace(".", ",")
 
 
+def _p(prob):
+    return f"{prob:g}".replace(".", ",")
+
+
 def _chequear(cola=None, metodo=None, tipo=None):
     if cola is not None and cola not in ("derecha", "izquierda", "bilateral"):
         raise ValueError(f'cola = "{cola}" no existe. Usá "derecha", "izquierda" o "bilateral".')
@@ -209,42 +213,42 @@ def rechaza_h0_diferencia(d, dc, cola):
 # CUÁNDO: querés todo el ensayo de una, impreso para la hoja.
 # PARA QUÉ: imprime hipótesis, muestra, valor crítico, CR, RD y decisión.
 #   nombres = cómo se llaman los grupos, ej: ("B", "A") -> H0: μB ≤ μA
-def _imprimir_desvio_d(metodo, n1, s1, n2, s2, h, a, b):
-    """Imprime σ_d y gl en tres renglones: fórmula, reemplazo, resultado."""
+def _raiz(metodo, n1, s1, n2, s2, h, a, b):
+    """Devuelve la raíz del valor crítico como en la guía: (con símbolos, con números)."""
     hh = "" if h == 1 else "h²·"
     hv = "" if h == 1 else f"{_n(h, 2)}²·"
-    se = error_estandar(metodo, n1, s1, n2, s2, h)
+    if metodo == "pool":
+        sa = desvio_amalgamado(n1, s1, n2, s2)
+        return (f"Sa · √(1/n{a} + {hh}1/n{b})",
+                f"{_n(sa)} · √(1/{n1} + {hv}1/{n2})")
+    letra = "σ" if metodo == "conocidos" else "S"
+    return (f"√({letra}{a}²/n{a} + {hh}{letra}{b}²/n{b})",
+            f"√({_n(s1)}²/{n1} + {hv}{_n(s2)}²/{n2})")
+
+
+def _imprimir_gl(metodo, n1, s1, n2, s2, h, a, b):
+    """Imprime Sa (Pool) y los grados de libertad: fórmula, reemplazo, resultado."""
+    hh = "" if h == 1 else "h²·"
     gl = grados_libertad(metodo, n1, s1, n2, s2, h)
     if metodo == "pool":
         sa = desvio_amalgamado(n1, s1, n2, s2)
-        linea(f"Sa  = raíz( ((n{a}-1)·S{a}² + (n{b}-1)·S{b}²) / (n{a} + n{b} - 2) )")
-        linea(f"    = raíz( ({n1 - 1}·{_n(s1)}² + {n2 - 1}·{_n(s2)}²) / {n1 + n2 - 2} )")
-        linea(f"    = {_n(sa)}")
+        linea(f"Sa = √( ((n{a}-1)·S{a}² + (n{b}-1)·S{b}²) / (n{a} + n{b} - 2) )")
+        linea(f"   = √( ({n1 - 1}·{_n(s1)}² + {n2 - 1}·{_n(s2)}²) / {n1 + n2 - 2} )")
+        linea(f"   = {_n(sa)}")
         linea()
-        linea(f"σ_d = Sa · raíz(1/n{a} + {hh}1/n{b})")
-        linea(f"    = {_n(sa)} · raíz(1/{n1} + {hv}1/{n2})")
-        linea(f"    = {_n(se)}")
+        linea(f"gl = n{a} + n{b} - 2")
+        linea(f"   = {n1} + {n2} - 2")
+        linea(f"   = {gl}")
         linea()
-        linea(f"gl  = n{a} + n{b} - 2")
-        linea(f"    = {n1} + {n2} - 2")
-        linea(f"    = {gl}")
     elif metodo == "welch":
         va = s1 ** 2 / n1
         vb = h ** 2 * s2 ** 2 / n2
         nu = (va + vb) ** 2 / (va ** 2 / (n1 - 1) + vb ** 2 / (n2 - 1))
-        linea(f"σ_d = raíz( S{a}²/n{a} + {hh}S{b}²/n{b} )")
-        linea(f"    = raíz( {_n(s1)}²/{n1} + {hv}{_n(s2)}²/{n2} )")
-        linea(f"    = raíz( {_n(va)} + {_n(vb)} )")
-        linea(f"    = {_n(se)}")
+        linea(f"gl = (S{a}²/n{a} + {hh}S{b}²/n{b})² / [ 1/(n{a}-1)·(S{a}²/n{a})² + 1/(n{b}-1)·({hh}S{b}²/n{b})² ]")
+        linea(f"   = ({_n(va)} + {_n(vb)})² / [ 1/{n1 - 1}·{_n(va)}² + 1/{n2 - 1}·{_n(vb)}² ]")
+        linea(f"   = {_n(nu, 4)}  →  {gl}   (Welch, se redondea para abajo)")
         linea()
-        linea(f"gl  = (S{a}²/n{a} + {hh}S{b}²/n{b})² / [ (S{a}²/n{a})²/(n{a}-1) + ({hh}S{b}²/n{b})²/(n{b}-1) ]")
-        linea(f"    = ({_n(va)} + {_n(vb)})² / [ {_n(va)}²/{n1 - 1} + {_n(vb)}²/{n2 - 1} ]")
-        linea(f"    = {_n(nu, 2)}  →  {gl}   (Aspin-Welch, se redondea para abajo)")
-    else:
-        linea(f"σ_d = raíz( σ{a}²/n{a} + {hh}σ{b}²/n{b} )")
-        linea(f"    = raíz( {_n(s1)}²/{n1} + {hv}{_n(s2)}²/{n2} )")
-        linea(f"    = {_n(se)}")
-    return se, gl
+    return gl
 
 
 def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1, nombres=("1", "2")):
@@ -291,32 +295,32 @@ def ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1, nombr
         linea(f"   = {_n(d)}")
 
     seccion("Valor crítico")
-    _imprimir_desvio_d(metodo, n1, s1, n2, s2, h, a, b)
-    linea()
+    _imprimir_gl(metodo, n1, s1, n2, s2, h, a, b)
+    rs, rv = _raiz(metodo, n1, s1, n2, s2, h, a, b)
     prob = 1 - alfa / 2 if cola == "bilateral" else 1 - alfa
     k = _fractil(metodo, prob, gl)
     et = "1-α/2" if cola == "bilateral" else "1-α"
     if metodo == "conocidos":
-        linea(f"Z({et}) = Z({_n(prob, 3)}) = {_n(k)}")
-        tab, tabv = f"Z({et})", f"Z({_n(prob, 3)})"
+        linea(f"Z({et}) = Z({_p(prob)}) = {_n(k)}")
+        tab, tabv = f"Z({et})", f"Z({_p(prob)})"
     else:
-        linea(f"t({et} ; gl) = t({_n(prob, 3)} ; {gl}) = {_n(k)}")
-        tab, tabv = f"t({et} ; gl)", f"t({_n(prob, 3)} ; {gl})"
+        linea(f"t({et} ; gl) = t({_p(prob)} ; {gl}) = {_n(k)}")
+        tab, tabv = f"t({et} ; gl)", f"t({_p(prob)} ; {gl})"
     linea()
     sp = " " * len(dn + "c")
     if cola == "bilateral":
-        linea(f"{dn}c = δ0 ± {tab} · σ_d")
-        linea(f"{sp} = {_n(delta0, 2)} ± {_n(k)} · {_n(se)}")
+        linea(f"{dn}c = δ0 ± {tab} · {rs}")
+        linea(f"{sp} = {_n(delta0, 2)} ± {_n(k)} · {rv}")
         linea(f"{sp} = {_n(dc[0])}   y   {_n(dc[1])}")
         cr = f"Si {dn} ≤ {_n(dc[0])}  o  {dn} ≥ {_n(dc[1])}  →  se rechaza H0"
     elif cola == "derecha":
-        linea(f"{dn}c = δ0 + {tab} · σ_d")
-        linea(f"{sp} = {_n(delta0, 2)} + {_n(k)} · {_n(se)}")
+        linea(f"{dn}c = δ0 + {tab} · {rs}")
+        linea(f"{sp} = {_n(delta0, 2)} + {_n(k)} · {rv}")
         linea(f"{sp} = {_n(dc)}")
         cr = f"Si {dn} ≥ {_n(dc)}  →  se rechaza H0"
     else:
-        linea(f"{dn}c = δ0 - {tab} · σ_d")
-        linea(f"{sp} = {_n(delta0, 2)} - {_n(k)} · {_n(se)}")
+        linea(f"{dn}c = δ0 - {tab} · {rs}")
+        linea(f"{sp} = {_n(delta0, 2)} - {_n(k)} · {rv}")
         linea(f"{sp} = {_n(dc)}")
         cr = f"Si {dn} ≤ {_n(dc)}  →  se rechaza H0"
     seccion("CR (condición de rechazo)")
@@ -357,9 +361,9 @@ def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilate
     k = _fractil(metodo, prob, gl)
     et = "1-α/2" if tipo == "bilateral" else "1-α"
     if metodo == "conocidos":
-        tab, tabv = f"Z({et})", f"Z({_n(prob, 3)})"
+        tab, tabv = f"Z({et})", f"Z({_p(prob)})"
     else:
-        tab, tabv = f"t({et} ; gl)", f"t({_n(prob, 3)} ; {gl})"
+        tab, tabv = f"t({et} ; gl)", f"t({_p(prob)} ; {gl})"
     if tipo == "bilateral":
         res = (d - k * se, d + k * se)
     elif tipo == "minimo":
@@ -375,28 +379,26 @@ def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilate
     linea(f"d = x̄{a} - x̄{b}")
     linea(f"  = {_n(x1)} - {_n(x2)}")
     linea(f"  = {_n(d)}")
-    seccion("Desvío de d")
-    _imprimir_desvio_d(metodo, n1, s1, n2, s2, 1, a, b)
-    linea()
+    seccion("Límites")
+    _imprimir_gl(metodo, n1, s1, n2, s2, 1, a, b)
+    rs, rv = _raiz(metodo, n1, s1, n2, s2, 1, a, b)
     linea(f"{tab} = {tabv} = {_n(k)}")
+    linea()
     if tipo == "bilateral":
-        seccion("Límites")
-        linea(f"A ; B = d ∓ {tab} · σ_d")
-        linea(f"      = {_n(d)} ∓ {_n(k)} · {_n(se)}")
+        linea(f"A ; B = d ∓ {tab} · {rs}")
+        linea(f"      = {_n(d)} ∓ {_n(k)} · {rv}")
         linea(f"      = {_n(res[0])}  y  {_n(res[1])}")
         seccion("Resultado")
         flecha(f"P({_n(res[0])} ≤ μ{a} - μ{b} ≤ {_n(res[1])}) = {_n(confianza, 2)}")
     elif tipo == "minimo":
-        seccion("Límite inferior")
-        linea(f"A = d - {tab} · σ_d")
-        linea(f"  = {_n(d)} - {_n(k)} · {_n(se)}")
+        linea(f"A = d - {tab} · {rs}")
+        linea(f"  = {_n(d)} - {_n(k)} · {rv}")
         linea(f"  = {_n(res)}")
         seccion("Resultado (diferencia MÍNIMA esperada)")
         flecha(f"P(μ{a} - μ{b} ≥ {_n(res)}) = {_n(confianza, 2)}")
     else:
-        seccion("Límite superior")
-        linea(f"B = d + {tab} · σ_d")
-        linea(f"  = {_n(d)} + {_n(k)} · {_n(se)}")
+        linea(f"B = d + {tab} · {rs}")
+        linea(f"  = {_n(d)} + {_n(k)} · {rv}")
         linea(f"  = {_n(res)}")
         seccion("Resultado (diferencia MÁXIMA esperada)")
         flecha(f"P(μ{a} - μ{b} ≤ {_n(res)}) = {_n(confianza, 2)}")
@@ -458,7 +460,7 @@ def n_para_error_medias(metodo, confianza, s1, s2, e, mostrar=True):
         tabla = "Z" if metodo == "conocidos" else "t"
         titulo("Tamaño de muestra")
         seccion("Planteo")
-        linea(f"Menor n (igual en las dos) tal que {tabla}(1-α/2) · σ_d ≤ e = {_n(e)}")
+        linea(f"Menor n (igual en las dos) tal que {tabla}(1-α/2) · √(S1²/n + S2²/n) ≤ e = {_n(e)}")
         seccion("Resultado")
         linea(f"n = {n}:  {_n(k)} · {_n(se)} = {_n(k * se)} ≤ {_n(e)}")
         flecha(f"n = {n}   (unidades MÁS = n nuevo - n que ya tenías, en cada población)")
