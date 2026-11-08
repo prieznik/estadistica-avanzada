@@ -17,10 +17,10 @@
 from formulas.datos import (
     media, desvio, n_agrupado, media_agrupada, desvio_agrupado,
     varianza_desde_desvio, desvio_desde_varianza, proporcion,
-    contar_debajo, contar_encima,
+    contar_debajo, contar_encima, resumen_tabla,
 )
 from formulas.hipotesis import planteo
-from formulas.fisher import valor_f, cociente_varianzas, valor_critico, rechaza_h0
+from formulas.fisher import valor_f, cociente_varianzas, valor_critico, rechaza_h0, ensayo_varianzas
 from formulas.medias import (
     metodo_para_medias, ensayo_medias, intervalo_diferencia, h_limite,
     n_para_error_medias, diferencias_apareadas, valor_t,
@@ -40,6 +40,7 @@ _AYUDA = """
 =============================== KIT ===============================
 
 DATOS DE LA CONSIGNA
+  n, x, s = resumen_tabla(tabla, "Línea A")   n, media y desvío con fórmulas para la hoja
   n_agrupado(tabla)            n de una tabla con frecuencias
   media_agrupada(tabla)        media de una tabla
   desvio_agrupado(tabla)       desvío de una tabla
@@ -53,6 +54,8 @@ HIPÓTESIS
   planteo("μB - μA", ">", 0)   te escribe H0, H1 y te devuelve la cola
 
 FISHER (comparar variabilidad)
+  ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola)
+        el ensayo completo cuando Fisher ES la pregunta ("¿más regular?")
   valor_critico(phi0, alfa, gl_arriba, gl_abajo, cola)   la línea j²c
   cociente_varianzas(s_arriba, s_abajo)                  j² de la muestra
   rechaza_h0(j2, j2c, cola)                              True / False

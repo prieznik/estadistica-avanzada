@@ -76,9 +76,9 @@ def metodo_para_medias(n1, x1, s1, n2, x2, s2, alfa=0.10):
         s_arr, n_arr, s_ab, n_ab, quien = s1, n1, s2, n2, "σ1/σ2"
     else:
         s_arr, n_arr, s_ab, n_ab, quien = s2, n2, s1, n1, "σ2/σ1"
-    j2 = cociente_varianzas(s_arr, s_ab)
-    j2c = valor_critico(1, alfa, n_arr - 1, n_ab - 1, "derecha")
-    rechaza = rechaza_h0(j2, j2c, "derecha")
+    j2 = cociente_varianzas(s_arr, s_ab, mostrar=False)
+    j2c = valor_critico(1, alfa, n_arr - 1, n_ab - 1, "derecha", mostrar=False)
+    rechaza = rechaza_h0(j2, j2c, "derecha", mostrar=False)
     print("--- Para la hoja: paso previo (Fisher) ---")
     print("Como los desvíos poblacionales no se conocen, antes de comparar las medias se")
     print("prueba si las varianzas se pueden suponer iguales. Se usa la distribución F de")
@@ -282,7 +282,7 @@ def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilate
 #   cola = "derecha"   -> μ1 > h·μ2 : h MÍNIMO garantizado (incremento)
 #          "izquierda" -> μ1 < h·μ2 : h MÁXIMO (decremento)
 # El porcentaje es (h - 1) · 100. Ej: h = 1,0506 -> 5,06 % más.
-def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha"):
+def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha", mostrar=True):
     def borde(h):
         d = diferencia_muestral(x1, x2, h)
         dc = valor_critico_diferencia(metodo, 0, alfa, n1, x1, s1, n2, x2, s2, cola, h)
@@ -295,22 +295,42 @@ def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha"):
             lo = medio
         else:
             hi = medio
-    return (lo + hi) / 2
+    h = (lo + hi) / 2
+    if mostrar:
+        print("--- Para la hoja: porcentaje límite ---")
+        print("Se busca el h para el cual d* = x̄1 - h·x̄2 queda justo sobre el valor crítico:")
+        print(f"   x̄1 - h·x̄2 = dc*(h)   ->   h = {_n(h)}")
+        if cola == "derecha":
+            print(f"Se puede garantizar que μ1 supera a μ2 en al menos un {_n((h - 1) * 100, 2)}% "
+                  f"(riesgo {_n(alfa, 2)}).")
+        else:
+            print(f"μ1 es como máximo el {_n(h * 100, 2)}% de μ2 (riesgo {_n(alfa, 2)}).")
+        print("--------------------------------------")
+    return h
 
 
 # CUÁNDO: "¿cuántas muestras más para reducir el error a ...?"
 #         (mismo tamaño n en las dos poblaciones)
 # PARA QUÉ: n de cada población. Se itera porque t depende de n.
 #   e = error que querés lograr (ej: la mitad del anterior)
-def n_para_error_medias(metodo, confianza, s1, s2, e):
+def n_para_error_medias(metodo, confianza, s1, s2, e, mostrar=True):
     alfa = 1 - confianza
     n = 2
     while True:
         gl = grados_libertad(metodo, n, s1, n, s2)
         k = _fractil(metodo, 1 - alfa / 2, gl)
-        if k * error_estandar(metodo, n, s1, n, s2) <= e:
-            return n
+        se = error_estandar(metodo, n, s1, n, s2)
+        if k * se <= e:
+            break
         n += 1
+    if mostrar:
+        tabla = "Z" if metodo == "conocidos" else "t"
+        print("--- Para la hoja: tamaño de muestra ---")
+        print(f"Se busca el menor n (igual en las dos) tal que {tabla}(1-α/2) · σ_d ≤ e = {_n(e)}")
+        print(f"   n = {n}:  {_n(k)} · {_n(se)} = {_n(k * se)} ≤ {_n(e)}")
+        print("(Las unidades MÁS son: n nuevo - n que ya tenías, en cada población.)")
+        print("---------------------------------------")
+    return n
 
 
 # --- Muestras apareadas ------------------------------------------------

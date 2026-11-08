@@ -84,6 +84,22 @@ def desvio_agrupado(clases):
     return (suma / (n - 1)) ** 0.5
 
 
+# CUÁNDO: primer paso de casi todo ejercicio con tabla.
+# PARA QUÉ: imprime n, x̄ y S de una tabla, con las fórmulas para la hoja,
+#   y los devuelve: n, x, s = resumen_tabla(tabla, "Línea A")
+def resumen_tabla(clases, nombre="Muestra"):
+    n = n_agrupado(clases)
+    x = media_agrupada(clases)
+    s = desvio_agrupado(clases)
+    print(f"--- Para la hoja: datos de {nombre} ---")
+    print("Se toma la marca de clase (punto medio) de cada intervalo.")
+    print(f"n = Σ fi = {n}")
+    print(f"x̄ = Σ (marca · fi) / n = {x:.4f}".replace(".", ","))
+    print(f"S = raíz( Σ (marca - x̄)² · fi / (n - 1) ) = {s:.4f}".replace(".", ","))
+    print("-" * (30 + len(nombre)))
+    return n, x, s
+
+
 # --- Pasar de desvío a varianza y al revés ---------------------------
 
 # CUÁNDO: tenés el desvío y la fórmula pide la varianza.

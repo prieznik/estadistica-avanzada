@@ -55,6 +55,10 @@
 from scipy.stats import f
 
 
+def _n(x, dec=4):
+    return f"{x:.{dec}f}".replace(".", ",")
+
+
 # CUÁNDO: necesitás un valor de la tabla F.
 # PARA QUÉ: reemplaza buscar en la tabla, ej: F(0,10 ; 12 ; 20) = 0,4855
 #   probabilidad = área a la IZQUIERDA del valor (ej: 0.10)
@@ -66,8 +70,12 @@ def valor_f(probabilidad, gl_arriba, gl_abajo):
 
 # CUÁNDO: ya tenés los desvíos muestrales de las dos poblaciones.
 # PARA QUÉ: obtener el cociente de la muestra j² = S_arriba² / S_abajo²
-def cociente_varianzas(s_arriba, s_abajo):
-    return (s_arriba / s_abajo) ** 2
+def cociente_varianzas(s_arriba, s_abajo, mostrar=True):
+    j2 = (s_arriba / s_abajo) ** 2
+    if mostrar:
+        print(f"Muestra: j² = S_arriba² / S_abajo² = {_n(s_arriba)}² / {_n(s_abajo)}² = {_n(j2)}"
+              f"   (j = {_n(j2 ** 0.5)})")
+    return j2
 
 
 # CUÁNDO: tenés que decidir (hacer el ensayo de hipótesis).
@@ -75,21 +83,52 @@ def cociente_varianzas(s_arriba, s_abajo):
 #   phi0  = relación de DESVÍOS de la hipótesis (ej: 0.8; si es igualdad, 1)
 #   alfa  = riesgo (ej: 0.10)
 #   cola  = "izquierda" (H1 dice menor) o "derecha" (H1 dice mayor)
-def valor_critico(phi0, alfa, gl_arriba, gl_abajo, cola):
+def valor_critico(phi0, alfa, gl_arriba, gl_abajo, cola, mostrar=True):
     if cola not in ("derecha", "izquierda"):
         raise ValueError(f'cola = "{cola}" no existe. Usá "derecha" o "izquierda".')
-    if cola == "izquierda":
-        return phi0 ** 2 * valor_f(alfa, gl_arriba, gl_abajo)
-    else:
-        return phi0 ** 2 * valor_f(1 - alfa, gl_arriba, gl_abajo)
+    prob = alfa if cola == "izquierda" else 1 - alfa
+    F = valor_f(prob, gl_arriba, gl_abajo)
+    j2c = phi0 ** 2 * F
+    if mostrar:
+        etiqueta = "α" if cola == "izquierda" else "1-α"
+        print(f"Valor crítico: j²c = φ0² · F({etiqueta} ; n_arriba-1 ; n_abajo-1)")
+        print(f"   j²c = {_n(phi0, 2)}² · F({_n(prob, 2)} ; {gl_arriba} ; {gl_abajo}) "
+              f"= {_n(phi0 ** 2)} · {_n(F)} = {_n(j2c)}   (jc = {_n(j2c ** 0.5)})")
+    return j2c
 
 
 # CUÁNDO: ya tenés el cociente de la muestra y la línea.
 # PARA QUÉ: saber si el cociente cruzó la línea.
 #   True  -> se rechaza H0 (la diferencia no parece azar)
 #   False -> no se rechaza H0 (puede ser azar, no se puede afirmar)
-def rechaza_h0(cociente, critico, cola):
-    if cola == "izquierda":
-        return cociente <= critico
-    else:
-        return cociente >= critico
+def rechaza_h0(cociente, critico, cola, mostrar=True):
+    rechaza = cociente <= critico if cola == "izquierda" else cociente >= critico
+    if mostrar:
+        signo = ("≤" if rechaza else ">") if cola == "izquierda" else ("≥" if rechaza else "<")
+        print(f"{_n(cociente)} {signo} {_n(critico)} -> "
+              + ("SE RECHAZA H0 (se puede afirmar H1)" if rechaza
+                 else "NO se rechaza H0 (no hay pruebas suficientes para H1)"))
+    return rechaza
+
+
+# CUÁNDO: Fisher ES la pregunta ("¿la máquina nueva es más regular?",
+#         "¿reduce el desvío en más de un 20%?").
+# PARA QUÉ: hace todo el ensayo e imprime el bloque para la hoja.
+#   phi0 = 1 si se pregunta solo "más/menos variable"; 0.8 si "reduce más de 20%"
+#   la muestra "arriba" es la que nombra la frase.
+def ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola):
+    if cola not in ("derecha", "izquierda"):
+        raise ValueError(f'cola = "{cola}" no existe. Usá "derecha" o "izquierda".')
+    s0, s1 = ("≤", ">") if cola == "derecha" else ("≥", "<")
+    print("--- Para la hoja: comparación de varianzas ---")
+    print("Se usa la distribución F de Fisher-Snedecor porque se comparan las varianzas")
+    print("(desvíos) de dos poblaciones independientes.")
+    print("Parámetro: φ = σ_arriba / σ_abajo")
+    print(f"H0: φ {s0} {_n(phi0, 2)}   H1: φ {s1} {_n(phi0, 2)}   (cola {cola}),  α = {_n(alfa, 2)}")
+    j2c = valor_critico(phi0, alfa, n_arriba - 1, n_abajo - 1, cola)
+    regla = "j² ≥ j²c" if cola == "derecha" else "j² ≤ j²c"
+    print(f"Regla de decisión: si {regla} = {_n(j2c)}, se rechaza H0")
+    j2 = cociente_varianzas(s_arriba, s_abajo)
+    rechaza = rechaza_h0(j2, j2c, cola)
+    print("----------------------------------------------")
+    return rechaza

@@ -66,12 +66,12 @@ La cola sale del **signo de H1**, que decidís vos leyendo la consigna. Si le pa
 
 | Si la consigna... | Función |
 |---|---|
-| da una tabla con intervalos y frecuencias | `n_agrupado`, `media_agrupada`, `desvio_agrupado` |
+| da una tabla con intervalos y frecuencias | `n, x, s = resumen_tabla(tabla, "Línea A")` (imprime las fórmulas) |
 | compara promedios de A y B (paso previo: ¿varianzas iguales?) | `metodo_para_medias(n1, x1, s1, n2, x2, s2)` → "pool" o "welch" |
 | "¿se puede asegurar que A produce más que B?", "más de un 10%" | `ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1)` |
 | da los σ "según registros históricos" | `ensayo_medias("conocidos", ...)` (usa Z, sin Fisher) |
 | "diferencia mínima / máxima esperada" | `intervalo_diferencia(metodo, confianza, ..., tipo="minimo")` |
-| "más regular", "menor variabilidad" | `valor_critico`, `cociente_varianzas`, `rechaza_h0` |
+| "más regular", "menor variabilidad", "reducir el desvío" | `ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola)` |
 | "fallas máximo del 7%... ¿cumple?" | `ensayo_proporcion(p0, n, r, alfa, cola)` |
 | "estimar el porcentaje de..." | `intervalo_proporcion(r, n, confianza, tipo)` |
 | "% por debajo de 14.000 hs" (con tabla) | `contar_debajo(tabla, 14)` y después `intervalo_proporcion` |
