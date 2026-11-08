@@ -251,13 +251,13 @@ def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilate
     tabla = "Z" if metodo == "conocidos" else f"t(gl = {gl})"
     if mostrar:
         print("--- Para la hoja: estimación de δ = μ1 - μ2 ---")
-        print(f"Método {metodo}. d = x̄1 - x̄2 = {_n(d)},  σ_d = {_n(se)},  confianza = {confianza:.0%}")
+        print(f"Método {metodo}. d = x̄1 - x̄2 = {_n(d)},  σ_d = {_n(se)},  confianza = {_n(confianza, 2)}")
     if tipo == "bilateral":
         k = _fractil(metodo, 1 - alfa / 2, gl)
         A, B = d - k * se, d + k * se
         if mostrar:
             print(f"A ; B = d ∓ {tabla}(1-α/2) · σ_d = {_n(d)} ∓ {_n(k)} · {_n(se)}")
-            print(f"P({_n(A)} ≤ δ ≤ {_n(B)}) = {confianza:.0%}")
+            print(f"P({_n(A)} ≤ δ ≤ {_n(B)}) = {_n(confianza, 2)}")
             print("-----------------------------------------------")
         return (A, B)
     k = _fractil(metodo, 1 - alfa, gl)
@@ -265,13 +265,13 @@ def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilate
         A = d - k * se
         if mostrar:
             print(f"A = d - {tabla}(1-α) · σ_d = {_n(d)} - {_n(k)} · {_n(se)} = {_n(A)}")
-            print(f"P(δ ≥ {_n(A)}) = {confianza:.0%}   (diferencia MÍNIMA esperada)")
+            print(f"P(δ ≥ {_n(A)}) = {_n(confianza, 2)}   (diferencia MÍNIMA esperada)")
             print("-----------------------------------------------")
         return A
     B = d + k * se
     if mostrar:
         print(f"B = d + {tabla}(1-α) · σ_d = {_n(d)} + {_n(k)} · {_n(se)} = {_n(B)}")
-        print(f"P(δ ≤ {_n(B)}) = {confianza:.0%}   (diferencia MÁXIMA esperada)")
+        print(f"P(δ ≤ {_n(B)}) = {_n(confianza, 2)}   (diferencia MÁXIMA esperada)")
         print("-----------------------------------------------")
     return B
 

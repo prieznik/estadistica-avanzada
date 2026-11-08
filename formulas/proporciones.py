@@ -219,20 +219,20 @@ def intervalo_proporcion(r, n, confianza, tipo="bilateral", mostrar=True):
         if mostrar:
             print(f"Gb(r/n ; A) = α/2  ->  Gb({r}/{n} ; A) = {_n(cola)}  ->  A = {_n(A)}")
             print(f"Fb(r/n ; B) = α/2  ->  Fb({r}/{n} ; B) = {_n(cola)}  ->  B = {_n(B)}")
-            print(f"P({_pct(A)} ≤ p ≤ {_pct(B)}) = {confianza:.0%}")
+            print(f"P({_n(A)} ≤ p ≤ {_n(B)}) = {_n(confianza, 2)}")
             print("--------------------")
         return (A, B)
     if tipo == "maximo":
         B = limite_B(cola)
         if mostrar:
             print(f"Fb(r/n ; B) = α  ->  Fb({r}/{n} ; B) = {_n(cola)}  ->  B = {_n(B)}")
-            print(f"P(p ≤ {_pct(B)}) = {confianza:.0%}   (porcentaje MÁXIMO)")
+            print(f"P(p ≤ {_n(B)}) = {_n(confianza, 2)}   (proporción MÁXIMA)")
             print("--------------------")
         return B
     A = limite_A(cola)
     if mostrar:
         print(f"Gb(r/n ; A) = α  ->  Gb({r}/{n} ; A) = {_n(cola)}  ->  A = {_n(A)}")
-        print(f"P(p ≥ {_pct(A)}) = {confianza:.0%}   (porcentaje MÍNIMO)")
+        print(f"P(p ≥ {_n(A)}) = {_n(confianza, 2)}   (proporción MÍNIMA)")
         print("--------------------")
     return A
 
