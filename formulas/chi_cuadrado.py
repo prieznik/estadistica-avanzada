@@ -59,6 +59,7 @@ import math
 from scipy.stats import chi2, norm, lognorm, gamma, weibull_min, gumbel_l, gumbel_r
 from scipy.optimize import brentq
 from formulas.datos import n_agrupado, media_agrupada, desvio_agrupado
+from formulas._formato import titulo, seccion, linea, flecha, fin
 
 INF = float("inf")
 EULER = 0.5772156649015329
@@ -87,7 +88,8 @@ def estadistico_chi2(fo, fe):
 def estimar_parametros(modelo, clases):
     x = media_agrupada(clases)
     s = desvio_agrupado(clases)
-    print(f"  x̄ = {x:.4f}   S = {s:.4f}")
+    seccion("Parámetros estimados con x̄ y S de la tabla (p = 2)")
+    linea(f"x̄ = {x:.4f}   ·   S = {s:.4f}".replace(".", ","))
     if modelo == "normal":
         p = {"mu": x, "sigma": s}
     elif modelo == "lognormal":
@@ -108,7 +110,7 @@ def estimar_parametros(modelo, clases):
         p = {"theta": x - EULER * beta, "beta": beta}
     else:
         raise ValueError(f"Modelo desconocido: {modelo}")
-    print("  Parámetros estimados: " + ", ".join(f"{k} = {v:.6f}" for k, v in p.items()))
+    linea("   ·   ".join(f"{k} = {v:.4f}" for k, v in p.items()).replace(".", ","))
     return p
 
 
@@ -164,15 +166,17 @@ def _num(x):
     return f"{x:g}"
 
 
-def _imprimir_tabla(titulo, etiquetas, fo, fe, probs=None):
-    print(titulo)
-    print(f"  {'Clase':<18}{'Fo':>8}" + (f"{'P(k)':>10}" if probs else "") + f"{'Fe':>10}")
+def _imprimir_tabla(nombre, etiquetas, fo, fe, probs=None):
+    seccion(nombre)
+    linea(f"{'Clase':<18}{'Fo':>8}" + (f"{'P(k)':>10}" if probs else "") + f"{'Fe':>10}")
+    linea("-" * (36 + (10 if probs else 0)))
     for i, (e, o, f) in enumerate(zip(etiquetas, fo, fe)):
-        linea = f"  {e:<18}{o:>8g}"
+        txt = f"{e:<18}{o:>8g}"
         if probs:
-            linea += f"{probs[i]:>10.4f}"
-        print(linea + f"{f:>10.2f}")
-    print(f"  {'Total':<18}{sum(fo):>8g}" + (" " * 10 if probs else "") + f"{sum(fe):>10.2f}")
+            txt += f"{probs[i]:>10.4f}"
+        linea(txt + f"{f:>10.2f}")
+    linea("-" * (36 + (10 if probs else 0)))
+    linea(f"{'Total':<18}{sum(fo):>8g}" + (" " * 10 if probs else "") + f"{sum(fe):>10.2f}")
 
 
 # --- Bondad de ajuste --------------------------------------------------
@@ -189,17 +193,21 @@ def _imprimir_tabla(titulo, etiquetas, fo, fe, probs=None):
 def bondad_ajuste(clases, modelo, alfa=0.05, parametros=None):
     if modelo not in DOMINIO:
         raise ValueError(f'modelo = "{modelo}" no existe. Usá: ' + ", ".join(DOMINIO))
-    print("--- Para la hoja: bondad de ajuste ---")
-    print("Se usa la prueba Chi cuadrado de bondad de ajuste: se comparan las frecuencias")
-    print("observadas (Fo) con las esperadas según el modelo (Fe = n · P(clase)).")
-    print("χ² = Σ (Fo - Fe)² / Fe ;  gl = k - 1 - p ;  se rechaza H0 si χ² > χ²(1-α ; gl)")
-    print(f"H0: los datos siguen el modelo {modelo}.   H1: no lo siguen.   Cola derecha, α = {alfa}")
+    titulo(f"Bondad de ajuste (Chi cuadrado): modelo {modelo}")
+    seccion("Justificación")
+    linea("Prueba Chi cuadrado de bondad de ajuste: se comparan las frecuencias")
+    linea("observadas (Fo) con las esperadas según el modelo (Fe = n · P(clase)).")
+    linea("χ² = Σ (Fo - Fe)² / Fe   ·   gl = k - 1 - p")
+    seccion("Hipótesis")
+    linea(f"H0: los datos siguen el modelo {modelo}")
+    linea("H1: no lo siguen")
+    linea(f"Cola derecha   ·   α = {str(alfa).replace('.', ',')}")
     if parametros is None:
         parametros = estimar_parametros(modelo, clases)
         p_estimados = len(parametros)
     else:
-        print("  Parámetros dados (no se estiman): "
-              + ", ".join(f"{k} = {v}" for k, v in parametros.items()))
+        seccion("Parámetros dados (no se estiman, p = 0)")
+        linea(", ".join(f"{k} = {v}" for k, v in parametros.items()))
         p_estimados = 0
 
     # Clases completas: se agregan las puntas hasta el dominio del modelo
@@ -214,24 +222,31 @@ def bondad_ajuste(clases, modelo, alfa=0.05, parametros=None):
     fo = [f for _, _, f in tramos]
     probs = [_acumulada(modelo, parametros, b) - _acumulada(modelo, parametros, a) for a, b, _ in tramos]
     fe = [n * pr for pr in probs]
-    _imprimir_tabla("\nTabla con las puntas agregadas:", etiquetas, fo, fe, probs)
+    _imprimir_tabla("Tabla (con las puntas agregadas)", etiquetas, fo, fe, probs)
 
     et2, fo2, fe2 = amalgamar(etiquetas, fo, fe)
     if len(et2) < len(etiquetas):
-        _imprimir_tabla("\nDespués de amalgamar (todas las Fe ≥ 5):", et2, fo2, fe2)
+        _imprimir_tabla("Después de amalgamar (todas las Fe ≥ 5)", et2, fo2, fe2)
 
     chi = estadistico_chi2(fo2, fe2)
     k = len(fe2)
     gl = k - 1 - p_estimados
     critico = valor_chi2(1 - alfa, gl)
     rechaza = chi > critico
-    print(f"\nχ² calculado = {chi:.4f}")
-    print(f"gl = k - 1 - p = {k} - 1 - {p_estimados} = {gl}")
-    print(f"χ²(1-α ; gl) = χ²({1 - alfa:g} ; {gl}) = {critico:.4f}")
+    seccion("Grados de libertad")
+    linea(f"gl = k - 1 - p = {k} - 1 - {p_estimados} = {gl}")
+    seccion("Valor crítico")
+    linea(f"χ²(1-α ; gl) = χ²({1 - alfa:g} ; {gl}) = {critico:.4f}".replace(".", ","))
+    seccion("Regla de decisión")
+    linea(f"Si χ² > {critico:.4f}, se rechaza H0".replace(".", ","))
+    seccion("Muestra")
+    linea(f"χ² = Σ (Fo - Fe)² / Fe = {chi:.4f}".replace(".", ","))
+    seccion("Decisión")
     if rechaza:
-        print(f"-> SE RECHAZA H0: los datos NO siguen el modelo {modelo}.")
+        flecha(f"SE RECHAZA H0: los datos NO siguen el modelo {modelo}")
     else:
-        print(f"-> NO se rechaza H0: el modelo {modelo} es un buen candidato.")
+        flecha(f"NO se rechaza H0: el modelo {modelo} es un buen candidato")
+    fin()
     return rechaza
 
 
@@ -248,19 +263,30 @@ def contingencia(tabla, alfa=0.05):
     tot_col = [sum(c) for c in zip(*tabla)]
     total = sum(tot_fila)
     esperados = [[tf * tc / total for tc in tot_col] for tf in tot_fila]
-    print("H0: las dos clasificaciones son independientes.   α =", alfa)
-    print("Esperados (Fe = total fila · total columna / total):")
+    titulo("Tabla de contingencia (Chi cuadrado)")
+    seccion("Hipótesis")
+    linea("H0: las dos clasificaciones son independientes")
+    linea("H1: hay relación entre ellas")
+    linea(f"Cola derecha   ·   α = {str(alfa).replace('.', ',')}")
+    seccion("Esperados (Fe = total fila · total columna / total)")
     for fila in esperados:
-        print("  " + "  ".join(f"{e:9.4f}" for e in fila))
+        linea("  ".join(f"{e:9.4f}" for e in fila))
     if min(min(f) for f in esperados) < 5:
-        print("  Ojo: hay celdas con Fe < 5. Habría que juntar filas o columnas.")
+        linea("Ojo: hay celdas con Fe < 5. Habría que juntar filas o columnas.")
     fo = [o for fila in tabla for o in fila]
     fe = [e for fila in esperados for e in fila]
     chi = estadistico_chi2(fo, fe)
     gl = (len(tabla) - 1) * (len(tabla[0]) - 1)
     critico = valor_chi2(1 - alfa, gl)
     rechaza = chi > critico
-    print(f"χ² calculado = {chi:.4f}   gl = {gl}   χ²({1 - alfa:g} ; {gl}) = {critico:.4f}")
-    print("-> SE RECHAZA H0: hay relación (no son independientes)." if rechaza
-          else "-> NO se rechaza H0: no se puede asegurar que haya relación.")
+    seccion("Grados de libertad")
+    linea(f"gl = (filas - 1) · (columnas - 1) = {gl}")
+    seccion("Valor crítico")
+    linea(f"χ²({1 - alfa:g} ; {gl}) = {critico:.4f}".replace(".", ","))
+    seccion("Muestra")
+    linea(f"χ² = Σ (Fo - Fe)² / Fe = {chi:.4f}".replace(".", ","))
+    seccion("Decisión")
+    flecha("SE RECHAZA H0: hay relación (no son independientes)" if rechaza
+           else "NO se rechaza H0: no se puede asegurar que haya relación")
+    fin()
     return rechaza

@@ -53,6 +53,7 @@
 # =====================================================================
 
 from scipy.stats import f
+from formulas._formato import titulo, seccion, linea, flecha, fin
 
 
 def _n(x, dec=4):
@@ -120,15 +121,40 @@ def ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola):
     if cola not in ("derecha", "izquierda"):
         raise ValueError(f'cola = "{cola}" no existe. Usá "derecha" o "izquierda".')
     s0, s1 = ("≤", ">") if cola == "derecha" else ("≥", "<")
-    print("--- Para la hoja: comparación de varianzas ---")
-    print("Se usa la distribución F de Fisher-Snedecor porque se comparan las varianzas")
-    print("(desvíos) de dos poblaciones independientes.")
-    print("Parámetro: φ = σ_arriba / σ_abajo")
-    print(f"H0: φ {s0} {_n(phi0, 2)}   H1: φ {s1} {_n(phi0, 2)}   (cola {cola}),  α = {_n(alfa, 2)}")
-    j2c = valor_critico(phi0, alfa, n_arriba - 1, n_abajo - 1, cola)
+    gl1, gl2 = n_arriba - 1, n_abajo - 1
+    prob = alfa if cola == "izquierda" else 1 - alfa
+    etiqueta = "α" if cola == "izquierda" else "1-α"
+    F = valor_f(prob, gl1, gl2)
+    j2c = valor_critico(phi0, alfa, gl1, gl2, cola, mostrar=False)
+    j2 = cociente_varianzas(s_arriba, s_abajo, mostrar=False)
+    rechaza = rechaza_h0(j2, j2c, cola, mostrar=False)
+
+    titulo("Comparación de varianzas (F de Fisher)")
+    seccion("Justificación")
+    linea("Se usa la distribución F de Fisher-Snedecor porque se comparan")
+    linea("las varianzas (desvíos) de dos poblaciones independientes.")
+    seccion("Hipótesis")
+    linea("φ = σ_arriba / σ_abajo")
+    linea(f"H0: φ {s0} {_n(phi0, 2)}")
+    linea(f"H1: φ {s1} {_n(phi0, 2)}")
+    linea(f"Cola {cola}   ·   α = {_n(alfa, 2)}")
+    seccion("Valor crítico")
+    linea(f"j²c = φ0² · F({etiqueta} ; n_arriba-1 ; n_abajo-1)")
+    linea(f"    = {_n(phi0, 2)}² · F({_n(prob, 2)} ; {gl1} ; {gl2})")
+    linea(f"    = {_n(j2c)}")
     regla = "j² ≥ j²c" if cola == "derecha" else "j² ≤ j²c"
-    print(f"Regla de decisión: si {regla} = {_n(j2c)}, se rechaza H0")
-    j2 = cociente_varianzas(s_arriba, s_abajo)
-    rechaza = rechaza_h0(j2, j2c, cola)
-    print("----------------------------------------------")
+    seccion("Regla de decisión")
+    linea(f"Si {regla} = {_n(j2c)}, se rechaza H0")
+    seccion("Muestra")
+    linea(f"j² = S_arriba² / S_abajo² = {_n(s_arriba)}² / {_n(s_abajo)}²")
+    linea(f"   = {_n(j2)}")
+    seccion("Decisión")
+    if cola == "izquierda":
+        signo = "≤" if rechaza else ">"
+    else:
+        signo = "≥" if rechaza else "<"
+    linea(f"{_n(j2)} {signo} {_n(j2c)}")
+    flecha("SE RECHAZA H0 (se puede afirmar H1)" if rechaza
+           else "NO se rechaza H0 (no hay pruebas suficientes para H1)")
+    fin()
     return rechaza

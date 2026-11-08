@@ -29,6 +29,9 @@
 # =====================================================================
 
 
+from formulas._formato import titulo, seccion, linea, flecha, fin
+
+
 # --- Valores sueltos -------------------------------------------------
 
 # CUÁNDO: la consigna te da una lista de valores medidos uno por uno.
@@ -91,12 +94,12 @@ def resumen_tabla(clases, nombre="Muestra"):
     n = n_agrupado(clases)
     x = media_agrupada(clases)
     s = desvio_agrupado(clases)
-    print(f"--- Para la hoja: datos de {nombre} ---")
-    print("Se toma la marca de clase (punto medio) de cada intervalo.")
-    print(f"n = Σ fi = {n}")
-    print(f"x̄ = Σ (marca · fi) / n = {x:.4f}".replace(".", ","))
-    print(f"S = raíz( Σ (marca - x̄)² · fi / (n - 1) ) = {s:.4f}".replace(".", ","))
-    print("-" * (30 + len(nombre)))
+    titulo(f"Datos de {nombre}")
+    seccion("Se toma la marca de clase (punto medio) de cada intervalo")
+    linea(f"n  = Σ fi = {n}")
+    linea(f"x̄  = Σ (marca · fi) / n = {x:.4f}".replace(".", ","))
+    linea(f"S  = raíz( Σ (marca - x̄)² · fi / (n - 1) ) = {s:.4f}".replace(".", ","))
+    fin()
     return n, x, s
 
 
