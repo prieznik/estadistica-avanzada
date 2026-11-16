@@ -412,7 +412,8 @@ def intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo="bilate
 #   cola = "derecha"   -> μ1 > h·μ2 : h MÍNIMO garantizado (incremento)
 #          "izquierda" -> μ1 < h·μ2 : h MÁXIMO (decremento)
 # El porcentaje es (h - 1) · 100. Ej: h = 1,0506 -> 5,06 % más.
-def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha", mostrar=True):
+def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha", mostrar=True, nombres=("1", "2")):
+    a_, b_ = nombres
     def borde(h):
         d = diferencia_muestral(x1, x2, h)
         dc = valor_critico_diferencia(metodo, 0, alfa, n1, x1, s1, n2, x2, s2, cola, h)
@@ -429,15 +430,15 @@ def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha", mostrar=True)
     if mostrar:
         titulo("Porcentaje límite (h)")
         seccion("Planteo")
-        linea("Se busca el h para el cual d* = x̄1 - h·x̄2 queda justo")
-        linea("sobre el valor crítico:  x̄1 - h·x̄2 = dc*(h)")
+        linea(f"Se busca el h para el cual d* = x̄{a_} - h·x̄{b_} queda justo")
+        linea(f"sobre el valor crítico:  x̄{a_} - h·x̄{b_} = d*c(h)   (se itera, como la guía V.3 d)")
         seccion("Resultado")
         linea(f"h = {_n(h)}")
         if cola == "derecha":
-            flecha(f"μ1 supera a μ2 en al menos un {_n((h - 1) * 100, 2)}% "
+            flecha(f"μ{a_} supera a μ{b_} en al menos un {_n((h - 1) * 100, 2)}% "
                    f"(riesgo {_n(alfa, 2)})")
         else:
-            flecha(f"μ1 es como máximo el {_n(h * 100, 2)}% de μ2 (riesgo {_n(alfa, 2)})")
+            flecha(f"μ{a_} es como máximo el {_n(h * 100, 2)}% de μ{b_} (riesgo {_n(alfa, 2)})")
         fin()
     return h
 
@@ -477,3 +478,122 @@ def n_para_error_medias(metodo, confianza, s1, s2, e, mostrar=True):
 #   y n = cantidad de pares, gl = n - 1, error estándar = S_d / raíz(n).
 def diferencias_apareadas(lista1, lista2):
     return [a - b for a, b in zip(lista1, lista2)]
+
+
+# CUÁNDO: muestras APAREADAS: los mismos individuos medidos dos veces
+#         ("antes y después de la capacitación", "con y sin tratar en el
+#         mismo zapato", "el mismo trabajador con los dos procesos").
+# PARA QUÉ: el ensayo completo sobre la diferencia promedio, como la guía
+#   (Tema V, problema 17): se restan los pares, d_i = x1_i - x2_i, y se hace
+#   un ensayo de UNA media con t de Student y gl = n - 1. No lleva Fisher.
+#   delta0 = el número de la hipótesis ("en más de 2 minutos" -> 2)
+#   cola   = "derecha" (H1 >), "izquierda" (H1 <) o "bilateral" (H1 ≠)
+def ensayo_apareadas(lista1, lista2, delta0, alfa, cola, nombres=("1", "2")):
+    _chequear(cola=cola)
+    a, b = nombres
+    dif = diferencias_apareadas(lista1, lista2)
+    n = len(dif)
+    d = sum(dif) / n
+    suma2 = sum((x - d) ** 2 for x in dif)
+    sd = (suma2 / (n - 1)) ** 0.5
+    gl = n - 1
+    s_h1, s_h0 = {"derecha": (">", "≤"), "izquierda": ("<", "≥"), "bilateral": ("≠", "=")}[cola]
+    prob = 1 - alfa / 2 if cola == "bilateral" else 1 - alfa
+    k = valor_t(prob, gl)
+    raiz = sd / n ** 0.5
+    if cola == "derecha":
+        dc = delta0 + k * raiz
+        rechaza = d >= dc
+    elif cola == "izquierda":
+        dc = delta0 - k * raiz
+        rechaza = d <= dc
+    else:
+        dc = (delta0 - k * raiz, delta0 + k * raiz)
+        rechaza = d <= dc[0] or d >= dc[1]
+    if delta0 == 0:
+        h0, h1 = f"μ{a} {s_h0} μ{b}", f"μ{a} {s_h1} μ{b}"
+    else:
+        h0 = f"μ{a} - μ{b} {s_h0} {_n(delta0, 2)}"
+        h1 = f"μ{a} - μ{b} {s_h1} {_n(delta0, 2)}"
+
+    titulo("Muestras apareadas (t de Student sobre las diferencias)")
+    seccion("Hipótesis")
+    linea(f"H0: {h0}")
+    linea(f"H1: {h1}")
+    linea(f"Cola {cola}   ·   α = {_n(alfa, 2)}")
+    linea(f"(En las fórmulas: δ = μ{a} - μ{b}   y   δ0 = {_n(delta0, 2)})")
+    seccion("Justificación")
+    linea("Las dos mediciones se hacen sobre la MISMA unidad experimental, así que")
+    linea("las muestras son apareadas: se trabaja con las diferencias d_i y una t de")
+    linea("Student con gl = n - 1 (desvío de las diferencias desconocido).")
+    seccion("Diferencias por unidad: d_i = x" + a + " - x" + b)
+    linea("   ".join(f"{x:g}".replace(".", ",") for x in dif))
+    seccion("Muestra")
+    linea(f"d̄  = Σ d_i / n = {_n(sum(dif))} / {n} = {_n(d)}")
+    linea(f"Sd = √( Σ (d_i - d̄)² / (n - 1) ) = √( {_n(suma2)} / {gl} ) = {_n(sd)}")
+    seccion("Valor crítico")
+    et = "1-α/2" if cola == "bilateral" else "1-α"
+    linea(f"gl = n - 1 = {n} - 1 = {gl}")
+    linea(f"t({et} ; gl) = t({_p(prob)} ; {gl}) = {_n(k)}")
+    linea()
+    op = {"derecha": "+", "izquierda": "-", "bilateral": "±"}[cola]
+    linea(f"dc = δ0 {op} t({et} ; gl) · Sd / √n")
+    linea(f"   = {_n(delta0, 2)} {op} {_n(k)} · {_n(sd)} / √{n}")
+    if cola == "bilateral":
+        linea(f"   = {_n(dc[0])}   y   {_n(dc[1])}")
+        cr = f"Si d̄ ≤ {_n(dc[0])}  o  d̄ ≥ {_n(dc[1])}  →  se rechaza H0"
+    else:
+        linea(f"   = {_n(dc)}")
+        cr = f"Si d̄ {'≥' if cola == 'derecha' else '≤'} {_n(dc)}  →  se rechaza H0"
+    seccion("CR (condición de rechazo)")
+    linea(cr)
+    seccion("RD (regla de decisión)")
+    linea(f"Si se rechaza H0  →  se puede afirmar H1 ({h1})")
+    linea("[completá con la acción del problema]")
+    seccion("Decisión")
+    if cola == "bilateral":
+        linea(f"d̄ = {_n(d)}  " + ("queda afuera de" if rechaza else "queda dentro de")
+              + f"  [{_n(dc[0])} ; {_n(dc[1])}]")
+    else:
+        mayor = d >= dc
+        linea(f"d̄ = {_n(d)}  {'≥' if mayor else '<'}  {_n(dc)}")
+    flecha(f"SE RECHAZA H0: se puede afirmar que {h1}" if rechaza
+           else f"NO se rechaza H0: no hay pruebas suficientes de que {h1}")
+    fin()
+    return rechaza
+
+
+# CUÁNDO: apareadas y te piden ESTIMAR la diferencia ("intervalo del 90%").
+def intervalo_apareadas(lista1, lista2, confianza, tipo="bilateral", nombres=("1", "2")):
+    _chequear(tipo=tipo)
+    a, b = nombres
+    dif = diferencias_apareadas(lista1, lista2)
+    n = len(dif)
+    d = sum(dif) / n
+    sd = (sum((x - d) ** 2 for x in dif) / (n - 1)) ** 0.5
+    alfa = 1 - confianza
+    prob = 1 - alfa / 2 if tipo == "bilateral" else 1 - alfa
+    k = valor_t(prob, n - 1)
+    e = k * sd / n ** 0.5
+    titulo(f"Estimación de δ = μ{a} - μ{b} (apareadas)")
+    seccion("Muestra")
+    linea(f"n = {n}   ·   d̄ = {_n(d)}   ·   Sd = {_n(sd)}   ·   gl = {n - 1}")
+    seccion("Límites")
+    if tipo == "bilateral":
+        linea(f"A ; B = d̄ ∓ t(1-α/2 ; gl) · Sd / √n = {_n(d)} ∓ {_n(k)} · {_n(sd)} / √{n}")
+        linea(f"      = {_n(d - e)}  y  {_n(d + e)}")
+        seccion("Resultado")
+        flecha(f"P({_n(d - e)} ≤ μ{a} - μ{b} ≤ {_n(d + e)}) = {_n(confianza, 2)}")
+        res = (d - e, d + e)
+    elif tipo == "minimo":
+        linea(f"A = d̄ - t(1-α ; gl) · Sd / √n = {_n(d)} - {_n(k)} · {_n(sd)} / √{n} = {_n(d - e)}")
+        seccion("Resultado (diferencia MÍNIMA)")
+        flecha(f"P(μ{a} - μ{b} ≥ {_n(d - e)}) = {_n(confianza, 2)}")
+        res = d - e
+    else:
+        linea(f"B = d̄ + t(1-α ; gl) · Sd / √n = {_n(d)} + {_n(k)} · {_n(sd)} / √{n} = {_n(d + e)}")
+        seccion("Resultado (diferencia MÁXIMA)")
+        flecha(f"P(μ{a} - μ{b} ≤ {_n(d + e)}) = {_n(confianza, 2)}")
+        res = d + e
+    fin()
+    return res

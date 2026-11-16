@@ -17,7 +17,7 @@
 from formulas.datos import (
     media, desvio, n_agrupado, media_agrupada, desvio_agrupado,
     varianza_desde_desvio, desvio_desde_varianza, proporcion,
-    contar_debajo, contar_encima, resumen_tabla,
+    contar_debajo, contar_encima, resumen_tabla, resumen_lista,
 )
 from formulas.hipotesis import planteo
 from formulas.fisher import valor_f, cociente_varianzas, valor_critico, rechaza_h0, ensayo_varianzas
@@ -26,12 +26,17 @@ from formulas.medias import (
     n_para_error_medias, diferencias_apareadas, valor_t,
     desvio_amalgamado, error_estandar, grados_libertad,
     valor_critico_diferencia, rechaza_h0_diferencia, diferencia_muestral,
+    ensayo_apareadas, intervalo_apareadas,
 )
 from formulas.proporciones import (
     ensayo_proporcion, intervalo_proporcion, beta_proporcion,
     n_ensayo_proporcion, n_para_error_proporcion, n_para_relacion_proporcion,
     error_intervalo, relacion_intervalo, reducir,
     valor_critico_proporcion, rechaza_h0_proporcion, alfa_a_posteriori, Gb, Fb,
+)
+from formulas.regresion import (
+    regresion_simple, ensayo_pendiente, intervalo_pendiente, intervalo_correlacion,
+    estimar_media_regresion, predecir_regresion,
 )
 from formulas.chi_cuadrado import bondad_ajuste, contingencia, valor_chi2, estimar_parametros
 

@@ -35,7 +35,11 @@
 #      Te devuelve: n, x, s (guardalos en variables para usarlos después).
 #      Ej:  nA, xA, sA = resumen_tabla(tablaA, "Línea A")
 #
-#  media(lista), desvio(lista)       si te dan los valores sueltos
+#  n, x, s = resumen_lista(lista, "nombre")
+#      Igual que resumen_tabla pero para valores sueltos ("109 - 108 - 107 ...").
+#      Ej:  manana = [109, 108, 108, 107]
+#           nM, xM, sM = resumen_lista(manana, "Turno mañana")
+#  Si la consigna YA te da n, media y desvío: nA, xA, sA = 20, 4.6, 0.55
 #
 #  ---------------------------------------------------------------------
 #  COMPARAR PROMEDIOS DE DOS GRUPOS (A vs B)
@@ -75,6 +79,16 @@
 #      Qué hace: "¿qué porcentaje mínimo se puede garantizar?"
 #
 #  ---------------------------------------------------------------------
+#  MUESTRAS APAREADAS (los MISMOS individuos medidos dos veces)
+#  ---------------------------------------------------------------------
+#  "antes y después", "cada empleado con y sin", "el mismo zapato tratado y sin
+#  tratar" -> NO hay Fisher. Se restan los pares y se hace t de Student, gl = n - 1.
+#  ensayo_apareadas(lista1, lista2, delta0, alfa, cola, nombres=("1", "2"))
+#      Ej: "¿la capacitación reduce el tiempo en más de 10 minutos?"
+#          ensayo_apareadas(sin, con, 10, 0.05, "derecha", nombres=("Sin", "Con"))
+#  intervalo_apareadas(lista1, lista2, confianza, tipo, nombres)
+#
+#  ---------------------------------------------------------------------
 #  FISHER COMO PREGUNTA ("¿más regular?", "¿menor variabilidad?")
 #  ---------------------------------------------------------------------
 #  ensayo_varianzas(phi0, alfa, n_arriba, s_arriba, n_abajo, s_abajo, cola)
@@ -109,6 +123,22 @@
 #      Si te dan los parámetros: bondad_ajuste(tabla, "normal", 0.05, {"mu": 20, "sigma": 2.5})
 #      Ej:  bondad_ajuste(tablaB, "normal", 0.05)
 #  contingencia(tabla_doble_entrada, alfa)     "¿depende de...?"
+#      También sirve para COMPARAR DOS PROPORCIONES (prueba de consistencia):
+#      "turno mañana 109 productos, 5 defectuosos; tarde 103, 7 defectuosos"
+#           contingencia([[5, 7], [104, 96]], 0.05)
+#           (fila 1 = defectuosos de cada grupo, fila 2 = buenos de cada grupo)
+#
+#  ---------------------------------------------------------------------
+#  REGRESIÓN LINEAL SIMPLE (y = lo que se quiere explicar, x = la que explica)
+#  ---------------------------------------------------------------------
+#  regresion_simple(x, y, alfa, nombres=("Horas", "Minutos"))
+#      recta ŷ = b0 + b1·x, S, Sb1, r, r² y validación (H0: β1 = 0)
+#  ensayo_pendiente(x, y, beta10, alfa, cola)
+#      "¿por cada hora más, los minutos bajan en más de 0,5?" -> beta10 = -0.5, "izquierda"
+#  intervalo_pendiente(x, y, confianza)       "estimar la contribución marginal"
+#  intervalo_correlacion(x, y, confianza)     "estimar la fuerza de la relación" (ρ y ρ²)
+#  estimar_media_regresion(x, y, x0, confianza)  y PROMEDIO para x0 ("en promedio")
+#  predecir_regresion(x, y, x0, confianza)       y de UN caso para x0 ("un empleado")
 
 import _ruta
 from formulas import *

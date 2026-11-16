@@ -153,3 +153,20 @@ def contar_debajo(clases, valor):
 # PARA QUÉ: r = n - (los que quedan por debajo)
 def contar_encima(clases, valor):
     return n_agrupado(clases) - contar_debajo(clases, valor)
+
+
+# CUÁNDO: la consigna te da los valores sueltos (ej: "109 - 108 - 108 ...").
+# PARA QUÉ: imprime n, x̄ y S con las fórmulas para la hoja y los devuelve:
+#   n, x, s = resumen_lista([109, 108, 108, 107], "Turno mañana")
+def resumen_lista(valores, nombre="Muestra"):
+    n = len(valores)
+    x = media(valores)
+    s = desvio(valores)
+    suma2 = sum((v - x) ** 2 for v in valores)
+    titulo(f"Datos de {nombre}")
+    seccion("Valores sueltos")
+    linea(f"n  = {n}")
+    linea(f"x̄  = Σ x_i / n = {sum(valores):g} / {n} = {x:.4f}".replace(".", ","))
+    linea(f"S  = √( Σ (x_i - x̄)² / (n - 1) ) = √( {suma2:.4f} / {n - 1} ) = {s:.4f}".replace(".", ","))
+    fin()
+    return n, x, s
