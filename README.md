@@ -25,7 +25,8 @@ El programa **hace las cuentas e imprime un bloque "Para la hoja"** en el orden 
 ├── practica/
 │   ├── _ruta.py                    ← no tocar
 │   ├── plantilla_ejercicio.py      ← copiala para cada ejercicio nuevo
-│   └── ejemplo_parcial_resuelto.py ← un segundo parcial completo, de referencia
+│   ├── ejemplo_parcial_resuelto.py ← un segundo parcial completo, de referencia
+│   └── modelos/                    ← 3 modelos de parcial (nivel 1, 2 y 3): consigna + resolución
 ├── requirements.txt
 └── README.md
 ```
@@ -79,6 +80,12 @@ La cola sale del **signo de H1**, que decidís vos leyendo la consigna. Si le pa
 | "probabilidad de (no) detectar si en realidad es..." | `beta_proporcion(rc, n, p1, cola)` |
 | "¿sigue un modelo Normal / Gamma / Gumbel...?" | `bondad_ajuste(tabla, modelo, alfa, parametros=None)` |
 | tabla de doble entrada, "¿depende de...?" | `contingencia(tabla, alfa)` |
+| dos proporciones ("turno mañana 5 de 109, tarde 7 de 103") | `contingencia([[5, 7], [104, 96]], alfa)` (prueba de consistencia) |
+| valores sueltos ("109 - 108 - 107 ...") | `n, x, s = resumen_lista(lista, "Turno mañana")` |
+| los mismos individuos medidos dos veces ("antes y después") | `ensayo_apareadas(lista1, lista2, delta0, alfa, cola)` y `intervalo_apareadas` |
+| "recta de mínimos cuadrados", "validar el modelo", "% explicado" | `regresion_simple(x, y, alfa)` |
+| "por cada hora más, ¿baja en más de 0,5?" | `ensayo_pendiente(x, y, -0.5, alfa, "izquierda")` |
+| "estimar el promedio de y para x = ..." / "para un empleado con x = ..." | `estimar_media_regresion` / `predecir_regresion` |
 
 Recordá:
 - Las tablas se cargan como `[(desde, hasta, frecuencia), ...]`.
