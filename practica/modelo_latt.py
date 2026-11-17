@@ -125,7 +125,19 @@ from formulas import *
 
 # Tablas y datos de la consigna:
 
+turnoManana= [109, 108, 108, 107, 101, 109, 112, 90, 111, 110]
+nA= len(turnoManana)
+xA= media(turnoManana)
+sA= desvio(turnoManana)
 
+print("Turno mañana: nA =", nA, ", xA =", xA, ", sA =", sA)
+
+turnoTarde= [111, 112, 112, 116, 113, 112, 108, 104, 104, 104]
+nB= len(turnoTarde)
+xB= media(turnoTarde)
+sB= desvio(turnoTarde)
+
+print("Turno tarde: nB =", nB, ", xB =", xB, ", sB =", sB)
 
 # =====================================================================
 #  4. RESOLUCIÓN

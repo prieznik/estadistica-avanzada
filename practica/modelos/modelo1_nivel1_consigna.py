@@ -202,43 +202,41 @@ errores = [14, 12, 12, 9, 10, 7, 7, 4]
 #  4. RESOLUCIÓN
 # =====================================================================
 
+'''
 # --- 1 a) ---
+nA, xA, sA = resumen_tabla(tablaA, "Marca A")
+nB, xB, sB = resumen_tabla(tablaB, "Marca B")
 
+metodo = metodo_para_medias(nA, xA, sA, nB, xB, sB)
+ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha", nombres=("B", "A"))
 
-# Conclusión en palabras:
-#
 
 
 # --- 1 b) ---
-
-
-# Conclusión en palabras:
-#
+intervalo_diferencia(metodo, 0.90, nB, xB, sB, nA, xA, sA, "minimo")
 
 
 # --- 1 c) ---
+bondad_ajuste(tablaA, "normal", 0.05)
 
-
-# Conclusión en palabras:
-#
-
+'''
 
 # --- 2 a) ---
+p= 0.04
+n= 150
+r= 9
+alfa= 0.05
+ensayo_proporcion(p, n, r, alfa, "derecha")
 
-
-# Conclusión en palabras:
-#
 
 
 # --- 2 b) ---
-
-
-# Conclusión en palabras:
-#
-
+intervalo_proporcion(r, n, 0.95, "bilateral")
 
 # --- 2 c) ---
-
+n_para_error_proporcion(r/n, 0.02, 0.95)
+nMAS= 543-150
+print("Se deben revisar", nMAS, "piezas más para que el error sea del 2%.")
 
 # Conclusión en palabras:
 #
