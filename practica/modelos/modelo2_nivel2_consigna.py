@@ -158,17 +158,11 @@ print(contar_encima(tablaN, 8))
 
 
 # --- 2 a) ---
-
-
-# Conclusión en palabras:
-#
-
+ensayo_proporcion(0.08, 200, 9, 0.05, "izquierda")
 
 # --- 2 b) ---
-
-
-# Conclusión en palabras:
-#
+rc = valor_critico_proporcion(0.08, 200, 0.05, "izquierda")
+beta_proporcion(rc, 200, 0.04, "izquierda")
 
 
 # --- 2 c) ---
