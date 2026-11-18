@@ -172,16 +172,12 @@ beta_proporcion(rc, 200, 0.04, "izquierda")
 intervalo_proporcion(9, 200, 0.95, "maximo")
 
 
-
 # --- 3 a) ---
-
-
-# Conclusión en palabras:
-#
+ensayo_apareadas(antes, despues, 3, 0.05, "derecha", nombres=("Antes", "Despues"))
 
 
 # --- 3 b) ---
-
+intervalo_apareadas(antes, despues, 0.90, "bilateral", nombres=("Antes", "Despues"))
 
 # Conclusión en palabras:
 #
