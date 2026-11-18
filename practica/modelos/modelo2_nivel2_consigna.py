@@ -168,8 +168,6 @@ beta_proporcion(rc, 200, 0.04, "izquierda")
 # --- 2 c) ---
 intervalo_proporcion(9, 200, 0.95, "maximo")
 
-# Conclusión en palabras:
-#
 
 
 # --- 3 a) ---

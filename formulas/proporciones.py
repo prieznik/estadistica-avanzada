@@ -184,19 +184,28 @@ def beta_proporcion(rc, n, p1, cola, mostrar=True):
     _chequear_cola(cola)
     if cola == "derecha":
         beta = Fb(rc - 1, n, p1)
-        formula = f"β = Fb(rc-1 / n ; p1) = Fb({rc - 1}/{n} ; {_n(p1)})"
+        no_rechaza = f"r ≤ {rc - 1}"
+        formula = f"β = Fb(rc-1 / n ; p*) = Fb({rc - 1}/{n} ; {_n(p1)})"
     else:
         beta = Gb(rc + 1, n, p1)
-        formula = f"β = Gb(rc+1 / n ; p1) = Gb({rc + 1}/{n} ; {_n(p1)})"
+        no_rechaza = f"r ≥ {rc + 1}"
+        formula = f"β = Gb(rc+1 / n ; p*) = Gb({rc + 1}/{n} ; {_n(p1)})"
     if mostrar:
-        titulo("Error tipo II (β)")
+        titulo(f"β y potencia (1 - β) si en realidad p* = {_n(p1)}")
         seccion("Qué es")
-        linea("β = probabilidad de NO rechazar H0 cuando en realidad p = p1")
+        linea(f"p* = el valor \"en realidad\" de la consigna (en la guía se llama p1) = {_n(p1)}")
+        linea(f"β  = probabilidad de NO rechazar H0 ({no_rechaza}) cuando en realidad p = p*")
         seccion("Cálculo")
-        linea(f"{formula}")
+        linea(formula)
         linea(f"  = {_n(beta)}")
-        seccion("Resultado")
-        flecha(f"β = {_n(beta)}   ·   detectar (potencia) = 1 - β = {_n(1 - beta)}")
+        linea(f"1 - β = {_n(1 - beta)}")
+        seccion("Cuál responde la consigna")
+        linea(f"Si pregunta por lo que pasa al RECHAZAR H0 (detectar, detener, cambiar, rechazar el lote):")
+        flecha(f"1 - β = {_n(1 - beta)}  →  \"La probabilidad de [detectar/detener/cambiar] si en realidad")
+        linea(f"  p = {_n(p1)} es {_n(1 - beta)}\"")
+        linea(f"Si pregunta por lo que pasa al NO rechazar H0 (no detectar, aceptar, no cambiar):")
+        flecha(f"β = {_n(beta)}  →  \"La probabilidad de [no detectar/aceptar] si en realidad")
+        linea(f"  p = {_n(p1)} es {_n(beta)}\"")
         fin()
     return beta
 
