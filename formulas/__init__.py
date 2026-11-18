@@ -33,12 +33,13 @@ from formulas.proporciones import (
     n_ensayo_proporcion, n_para_error_proporcion, n_para_relacion_proporcion,
     error_intervalo, relacion_intervalo, reducir,
     valor_critico_proporcion, rechaza_h0_proporcion, alfa_a_posteriori, Gb, Fb,
+    comparar_proporciones, potencia_dos_proporciones,
 )
 from formulas.regresion import (
     regresion_simple, ensayo_pendiente, intervalo_pendiente, intervalo_correlacion,
     estimar_media_regresion, predecir_regresion,
 )
-from formulas.chi_cuadrado import bondad_ajuste, bondad_proporciones, contingencia, valor_chi2, estimar_parametros
+from formulas.chi_cuadrado import bondad_ajuste, bondad_proporciones, bondad_exponencial, contingencia, valor_chi2, estimar_parametros
 
 
 _AYUDA = """

@@ -39,6 +39,7 @@
 #    Programa: rc, α real, β, límites del intervalo y tamaños de muestra.
 # =====================================================================
 
+import math
 from scipy.stats import binom, norm
 from scipy.optimize import brentq
 from formulas._formato import titulo, seccion, linea, flecha, fin
@@ -331,3 +332,99 @@ def n_para_relacion_proporcion(p_hat, R, confianza, mostrar=True):
         flecha(f"n = {n}   (unidades MÁS = n nuevo - n que ya tenías)")
         fin()
     return n
+
+
+# --- Comparar DOS proporciones con una sospecha (más que / menos que) ---
+#
+# CUÁNDO: "se sospecha que el turno mañana tiene menos defectuosos que el
+#         turno tarde", "¿se verifica la sospecha?" (dos grupos, un %).
+# PARA QUÉ: ensayo con la aproximación Normal, como la guía (Tema VI,
+#   problema 1, método 3). Grupo 1 = el que debería tener el % MÁS GRANDE,
+#   así H1: p1 > p2 y la cola es "derecha".
+#   (Si solo pregunta "¿difieren?", también sirve contingencia: prueba de
+#   consistencia con Chi cuadrado.)
+def _sigma_g(r1, n1, r2, n2):
+    pa = (r1 + r2) / (n1 + n2)
+    return pa, math.sqrt(pa * (1 - pa) * (1 / (n1 - 1) + 1 / (n2 - 1)))
+
+
+def comparar_proporciones(r1, n1, r2, n2, alfa, cola, nombres=("1", "2"), mostrar=True):
+    _chequear_cola(cola)
+    a, b = nombres
+    p1, p2 = r1 / n1, r2 / n2
+    pa, sg = _sigma_g(r1, n1, r2, n2)
+    z = norm.ppf(1 - alfa)
+    g = p1 - p2
+    if cola == "derecha":
+        gc = z * sg
+        rechaza = g >= gc
+        s0, s1, op, cr = "≤", ">", "+", f"Si g ≥ {_n(z * sg)}  →  se rechaza H0"
+    else:
+        gc = -z * sg
+        rechaza = g <= gc
+        s0, s1, op, cr = "≥", "<", "-", f"Si g ≤ {_n(-z * sg)}  →  se rechaza H0"
+    if mostrar:
+        titulo("Comparación de dos proporciones (aproximación Normal)")
+        seccion("Hipótesis")
+        linea(f"H0: p{a} {s0} p{b}")
+        linea(f"H1: p{a} {s1} p{b}")
+        linea(f"Cola {cola}   ·   α = {_n(alfa, 2)}")
+        linea(f"(En las fórmulas: δ = p{a} - p{b}   y   δ0 = 0)")
+        seccion("Justificación")
+        linea("Se comparan dos procesos de Bernoulli. Con muestras grandes se usa la")
+        linea("aproximación Normal (guía, Tema VI, problema 1, método 3).")
+        seccion("Muestra")
+        linea(f"p̂{a} = r{a}/n{a} = {r1}/{n1} = {_n(p1)}")
+        linea(f"p̂{b} = r{b}/n{b} = {r2}/{n2} = {_n(p2)}")
+        linea(f"g = p̂{a} - p̂{b} = {_n(p1)} - {_n(p2)} = {_n(g)}")
+        seccion("Valor crítico")
+        linea(f"p̂a = (r{a} + r{b}) / (n{a} + n{b}) = ({r1} + {r2}) / ({n1} + {n2}) = {_n(pa)}")
+        linea(f"gc = {op}Z(1-α) · √( p̂a·(1 - p̂a)·(1/(n{a}-1) + 1/(n{b}-1)) )")
+        linea(f"   = {op}{_n(z)} · √( {_n(pa)}·{_n(1 - pa)}·(1/{n1 - 1} + 1/{n2 - 1}) )")
+        linea(f"   = {_n(gc)}")
+        seccion("CR (condición de rechazo)")
+        linea(cr)
+        seccion("RD (regla de decisión)")
+        linea(f"Si se rechaza H0  →  se puede afirmar que p{a} {s1} p{b}")
+        seccion("Decisión")
+        mayor = g >= gc
+        linea(f"g = {_n(g)}  {'≥' if mayor else '<'}  {_n(gc)}")
+        flecha(f"SE RECHAZA H0: se puede afirmar que p{a} {s1} p{b}" if rechaza
+               else f"NO se rechaza H0: no hay pruebas suficientes de que p{a} {s1} p{b}")
+        fin()
+    return rechaza
+
+
+# CUÁNDO: "¿cuál es la probabilidad de detectar que el turno tarde tiene un
+#         2% más de defectuosos?" (después de comparar_proporciones).
+#   diferencia = la diferencia "en realidad" de la consigna (2% → 0.02)
+def potencia_dos_proporciones(r1, n1, r2, n2, alfa, cola, diferencia, nombres=("1", "2")):
+    _chequear_cola(cola)
+    a, b = nombres
+    pa, sg = _sigma_g(r1, n1, r2, n2)
+    z = norm.ppf(1 - alfa)
+    if cola == "derecha":
+        gc = z * sg
+        beta = norm.cdf((gc - diferencia) / sg)
+        formula = f"β = Φ( (gc - δ*) / σg ) = Φ( ({_n(gc)} - {_n(diferencia)}) / {_n(sg)} )"
+    else:
+        gc = -z * sg
+        beta = 1 - norm.cdf((gc - diferencia) / sg)
+        formula = f"β = 1 - Φ( (gc - δ*) / σg ) = 1 - Φ( ({_n(gc)} - ({_n(diferencia)})) / {_n(sg)} )"
+    titulo(f"β y potencia si en realidad p{a} - p{b} = {_n(diferencia)}")
+    seccion("Qué es")
+    linea(f"δ* = la diferencia \"en realidad\" de la consigna = {_n(diferencia)}")
+    linea("β  = probabilidad de NO rechazar H0 cuando en realidad la diferencia es δ*")
+    seccion("Cálculo")
+    linea(f"σg = √( p̂a·(1 - p̂a)·(1/(n{a}-1) + 1/(n{b}-1)) ) = {_n(sg)}   ·   gc = {_n(gc)}")
+    linea(formula)
+    linea(f"  = {_n(beta)}")
+    linea(f"1 - β = {_n(1 - beta)}")
+    seccion("Cuál responde la consigna")
+    linea("Si pregunta por DETECTAR (rechazar H0):")
+    flecha(f"1 - β = {_n(1 - beta)}  →  \"La probabilidad de detectar que la diferencia es "
+           f"{_n(diferencia)} es {_n(1 - beta)}\"")
+    linea("Si pregunta por NO detectar:")
+    flecha(f"β = {_n(beta)}")
+    fin()
+    return beta
