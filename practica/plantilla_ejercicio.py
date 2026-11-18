@@ -42,8 +42,11 @@
 #  "% que no cumple" (tabla) .... r = contar_debajo(tabla, valor)    →    intervalo_proporcion(r, n, confianza, tipo)
 #                                 (contar_encima(tabla, valor) para "por encima de")
 #  "¿cuántas más?" (error e) .... n_para_error_proporcion(r / n, e, confianza)   más = n nuevo − n que tenías
-#  "prob. de (no) detectar p1" .. rc = valor_critico_proporcion(p0, n, alfa, cola)
-#                                 beta_proporcion(rc, n, p1, cola)                detectar = 1 − β
+#  "probabilidad de ... si en realidad es X%"  →  β o 1 − β    (p* = ese X%, en la guía p1)
+#                                 rc = valor_critico_proporcion(p0, n, alfa, cola)      misma cola que el ensayo
+#                                 beta_proporcion(rc, n, p_estrella, cola)
+#                                 pasa al RECHAZAR H0 (detectar, detener, cambiar) → 1 − β
+#                                 pasa al NO rechazar (no detectar, aceptar)        → β
 #
 #  --- CHI CUADRADO ---
 #  "¿sigue un modelo?" (tabla) .. bondad_ajuste(tabla, modelo, alfa)     modelo = "normal", "gamma", "lognormal",
