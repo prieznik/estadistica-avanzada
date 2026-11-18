@@ -428,17 +428,20 @@ def h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, cola="derecha", mostrar=True,
             hi = medio
     h = (lo + hi) / 2
     if mostrar:
-        titulo("Porcentaje límite (h)")
+        d = diferencia_muestral(x1, x2, h)
+        dc = valor_critico_diferencia(metodo, 0, alfa, n1, x1, s1, n2, x2, s2, cola, h)
+        titulo("Incremento porcentual mínimo garantizado (h)")
         seccion("Planteo")
-        linea(f"Se busca el h para el cual d* = x̄{a_} - h·x̄{b_} queda justo")
-        linea(f"sobre el valor crítico:  x̄{a_} - h·x̄{b_} = d*c(h)   (se itera, como la guía V.3 d)")
+        linea(f"H0: μ{a_} ≤ h · μ{b_}    H1: μ{a_} > h · μ{b_}    ·   α = {_n(alfa, 2)}")
+        linea(f"Se busca el h que deja d* = x̄{a_} - h · x̄{b_} justo sobre el valor crítico d*c")
+        linea("(se itera con distintos h, como la guía V.3 d)")
         seccion("Resultado")
-        linea(f"h = {_n(h)}")
+        linea(f"h = {_n(h)}   →   d* = {_n(d)}  ≈  d*c = {_n(dc)}")
         if cola == "derecha":
-            flecha(f"μ{a_} supera a μ{b_} en al menos un {_n((h - 1) * 100, 2)}% "
-                   f"(riesgo {_n(alfa, 2)})")
+            flecha(f"Incremento mínimo garantizado: {_n((h - 1) * 100, 2)}%  "
+                   f"(μ{a_} supera a μ{b_} en al menos un {_n((h - 1) * 100, 2)}%)")
         else:
-            flecha(f"μ{a_} es como máximo el {_n(h * 100, 2)}% de μ{b_} (riesgo {_n(alfa, 2)})")
+            flecha(f"μ{a_} es como máximo el {_n(h * 100, 2)}% de μ{b_}")
         fin()
     return h
 

@@ -88,29 +88,39 @@ def estadistico_chi2(fo, fe):
 def estimar_parametros(modelo, clases):
     x = media_agrupada(clases)
     s = desvio_agrupado(clases)
-    seccion("Paso 1 · Parámetros del modelo: no los dan, se estiman con x̄ y S (p = 2)")
+    seccion("Paso 1 · Parámetros: no los dan, se estiman con x̄ y S (p = 2)")
     linea(f"x̄ = {x:.4f}   ·   S = {s:.4f}".replace(".", ","))
+    f = lambda v: f"{v:.4f}".replace(".", ",")
     if modelo == "normal":
         p = {"mu": x, "sigma": s}
+        linea(f"μ = x̄ = {f(x)}   ·   σ = S = {f(s)}")
     elif modelo == "lognormal":
         D = math.sqrt(math.log(1 + (s / x) ** 2))
-        p = {"m": math.log(x / math.sqrt(1 + (s / x) ** 2)), "D": D}
+        m = math.log(x / math.sqrt(1 + (s / x) ** 2))
+        p = {"m": m, "D": D}
+        linea(f"D = √( ln(1 + (S/x̄)²) ) = {f(D)}")
+        linea(f"m = ln(x̄) - D²/2 = {f(m)}")
     elif modelo == "gamma":
         lam = x / s ** 2
         p = {"r": x * lam, "lambda": lam}
+        linea(f"r = x̄² / S² = {f(x)}² / {f(s)}² = {f(x * lam)}")
+        linea(f"λ = x̄ / S²  = {f(x)} / {f(s)}² = {f(lam)}")
     elif modelo == "weibull":
         cv = s / x
         w = brentq(lambda w: math.gamma(1 + 2 / w) / math.gamma(1 + 1 / w) ** 2 - 1 - cv ** 2, 0.05, 100)
-        p = {"w": w, "b": x / math.gamma(1 + 1 / w)}
-    elif modelo == "gumbel_min":
+        b = x / math.gamma(1 + 1 / w)
+        p = {"w": w, "b": b}
+        linea(f"w: se itera con (S/x̄)² = Γ(1 + 2/w) / Γ²(1 + 1/w) - 1   →   w = {f(w)}")
+        linea(f"b = x̄ / Γ(1 + 1/w) = {f(b)}")
+    elif modelo in ("gumbel_min", "gumbel_max"):
         beta = s * math.sqrt(6) / math.pi
-        p = {"theta": x + EULER * beta, "beta": beta}
-    elif modelo == "gumbel_max":
-        beta = s * math.sqrt(6) / math.pi
-        p = {"theta": x - EULER * beta, "beta": beta}
+        theta = x + EULER * beta if modelo == "gumbel_min" else x - EULER * beta
+        p = {"theta": theta, "beta": beta}
+        op = "+" if modelo == "gumbel_min" else "-"
+        linea(f"β = S · √6 / π = {f(beta)}")
+        linea(f"θ = x̄ {op} 0,5772 · β = {f(theta)}")
     else:
         raise ValueError(f"Modelo desconocido: {modelo}")
-    linea("   ·   ".join(f"{k} = {v:.4f}" for k, v in p.items()).replace(".", ","))
     return p
 
 

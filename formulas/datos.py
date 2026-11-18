@@ -94,12 +94,7 @@ def resumen_tabla(clases, nombre="Muestra"):
     n = n_agrupado(clases)
     x = media_agrupada(clases)
     s = desvio_agrupado(clases)
-    titulo(f"Datos de {nombre}")
-    seccion("Se toma la marca de clase (punto medio) de cada intervalo")
-    linea(f"n  = Σ fi = {n}")
-    linea(f"x̄  = Σ (marca · fi) / n = {x:.4f}".replace(".", ","))
-    linea(f"S  = raíz( Σ (marca - x̄)² · fi / (n - 1) ) = {s:.4f}".replace(".", ","))
-    fin()
+    print(f"  {nombre}:   n = {n}   ·   x̄ = {x:.4f}   ·   S = {s:.4f}".replace(".", ","))
     return n, x, s
 
 
@@ -136,37 +131,45 @@ def proporcion(r, n):
 # Si el valor cae en el MEDIO de un intervalo, se reparte esa clase en
 # forma proporcional (supuesto: datos parejos dentro de la clase) y se
 # redondea. Te avisa, porque conviene confirmar con el profe cómo lo toma.
-def contar_debajo(clases, valor):
+def _contar(clases, valor, mostrar):
     r = 0
+    usadas = []
     for desde, hasta, f in clases:
         if hasta <= valor:
             r += f
+            usadas.append(f"{desde:g}-{hasta:g}: {f:g}")
         elif desde < valor < hasta:
             parte = f * (valor - desde) / (hasta - desde)
-            print(f"  Ojo: {valor} cae dentro de la clase {desde}-{hasta}: "
-                  f"se toman {parte:.2f} de sus {f} datos (proporcional).")
+            usadas.append(f"{desde:g}-{hasta:g}: {str(round(parte, 2)).replace(".", ",")} de {f:g} (proporcional, confirmar con el profe)")
             r += parte
-    return round(r)
+    return round(r), usadas
+
+
+def contar_debajo(clases, valor, mostrar=True):
+    r, usadas = _contar(clases, valor, mostrar)
+    if mostrar:
+        n = n_agrupado(clases)
+        print(f"  Por debajo de {valor:g}:  " + "  +  ".join(usadas))
+        print(f"  → r = {r}  de  n = {n}   (usalo en intervalo_proporcion(r, n, confianza, tipo))")
+    return r
 
 
 # CUÁNDO: igual que contar_debajo, pero para "por encima de" un valor.
-# PARA QUÉ: r = n - (los que quedan por debajo)
-def contar_encima(clases, valor):
-    return n_agrupado(clases) - contar_debajo(clases, valor)
+def contar_encima(clases, valor, mostrar=True):
+    n = n_agrupado(clases)
+    r = n - _contar(clases, valor, False)[0]
+    if mostrar:
+        print(f"  Por encima de {valor:g}:  r = n - (los de debajo) = {n} - {n - r} = {r}")
+        print(f"  → r = {r}  de  n = {n}   (usalo en intervalo_proporcion(r, n, confianza, tipo))")
+    return r
 
 
 # CUÁNDO: la consigna te da los valores sueltos (ej: "109 - 108 - 108 ...").
-# PARA QUÉ: imprime n, x̄ y S con las fórmulas para la hoja y los devuelve:
+# PARA QUÉ: imprime n, x̄ y S y los devuelve:
 #   n, x, s = resumen_lista([109, 108, 108, 107], "Turno mañana")
 def resumen_lista(valores, nombre="Muestra"):
     n = len(valores)
     x = media(valores)
     s = desvio(valores)
-    suma2 = sum((v - x) ** 2 for v in valores)
-    titulo(f"Datos de {nombre}")
-    seccion("Valores sueltos")
-    linea(f"n  = {n}")
-    linea(f"x̄  = Σ x_i / n = {sum(valores):g} / {n} = {x:.4f}".replace(".", ","))
-    linea(f"S  = √( Σ (x_i - x̄)² / (n - 1) ) = √( {suma2:.4f} / {n - 1} ) = {s:.4f}".replace(".", ","))
-    fin()
+    print(f"  {nombre}:   n = {n}   ·   x̄ = {x:.4f}   ·   S = {s:.4f}".replace(".", ","))
     return n, x, s
