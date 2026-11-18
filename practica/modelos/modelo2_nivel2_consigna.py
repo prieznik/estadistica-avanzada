@@ -210,38 +210,27 @@ despues = [47, 45, 49, 53, 46, 52, 48, 50]
 # =====================================================================
 
 # --- 1 a) ---
+nA, xA, sA= resumen_tabla(tablaA)
+nN, xN, sN= resumen_tabla(tablaN)
 
-
-# Conclusión en palabras:
-#
+metodo = metodo_para_medias(nN, xN, sN, nA, xA, sA, nombres=("Nueva", "Actual"))
+ensayo_medias(metodo, 0, 0.05, nN, xN, sN, nA, xA, sA, "derecha", nombres=("Nueva", "Actual"))
 
 
 # --- 1 b) ---
-
-
-# Conclusión en palabras:
-#
-
+ensayo_medias(metodo, 0, 0.05, nN, xN, sN, nA, xA, sA, "derecha", h=1.10, nombres=("Nueva", "Actual"))
 
 # --- 1 c) ---
-
-
-# Conclusión en palabras:
-#
+intervalo_diferencia(metodo, 1-0.05, nN, xN, sN, nA, xA, sA, "minimo", nombres=("N", "A"))
 
 
 # --- 1 d) ---
-
-
-# Conclusión en palabras:
-#
+bondad_ajuste(tablaN, "gamma", 0.05)
 
 
 # --- 1 e) ---
+print(contar_encima(tablaN, 8))
 
-
-# Conclusión en palabras:
-#
 
 
 # --- 2 a) ---
