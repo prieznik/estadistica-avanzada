@@ -250,28 +250,28 @@ def intervalo_proporcion(r, n, confianza, tipo="bilateral", mostrar=True):
     if tipo == "bilateral":
         A, B = limite_A(cola), limite_B(cola)
         if mostrar:
-            seccion("Límites")
+            seccion("Límites  (A y B son los p que hacen cumplir cada ecuación; se buscan probando valores)")
             linea(f"Gb(r/n ; A) = α/2  →  Gb({r}/{n} ; A) = {_n(cola)}  →  A = {_n(A)}")
             linea(f"Fb(r/n ; B) = α/2  →  Fb({r}/{n} ; B) = {_n(cola)}  →  B = {_n(B)}")
             seccion("Resultado")
-            flecha(f"P({_n(A)} ≤ p ≤ {_n(B)}) = {_n(confianza, 2)}")
+            flecha(f"P({_n(A)} ≤ p ≤ {_n(B)}) = {_n(confianza, 2)}   →   entre {_n(A * 100, 2)}% y {_n(B * 100, 2)}%")
             fin()
         return (A, B)
     if tipo == "maximo":
         B = limite_B(cola)
         if mostrar:
-            seccion("Límite superior")
+            seccion("Límite superior  (B = el p que hace Fb(r/n ; B) = α; se busca probando valores)")
             linea(f"Fb(r/n ; B) = α  →  Fb({r}/{n} ; B) = {_n(cola)}  →  B = {_n(B)}")
             seccion("Resultado (proporción MÁXIMA)")
-            flecha(f"P(p ≤ {_n(B)}) = {_n(confianza, 2)}")
+            flecha(f"P(p ≤ {_n(B)}) = {_n(confianza, 2)}   →   como máximo {_n(B * 100, 2)}%")
             fin()
         return B
     A = limite_A(cola)
     if mostrar:
-        seccion("Límite inferior")
+        seccion("Límite inferior  (A = el p que hace Gb(r/n ; A) = α; se busca probando valores)")
         linea(f"Gb(r/n ; A) = α  →  Gb({r}/{n} ; A) = {_n(cola)}  →  A = {_n(A)}")
         seccion("Resultado (proporción MÍNIMA)")
-        flecha(f"P(p ≥ {_n(A)}) = {_n(confianza, 2)}")
+        flecha(f"P(p ≥ {_n(A)}) = {_n(confianza, 2)}   →   como mínimo {_n(A * 100, 2)}%")
         fin()
     return A
 
