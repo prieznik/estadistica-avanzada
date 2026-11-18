@@ -63,6 +63,17 @@
 # =====================================================================
 #  2. AYUDA: si la consigna dice... → función
 # =====================================================================
+#  PASO 0 · ¿QUÉ ME PIDEN? (mirá el verbo de la consigna)
+#   "¿se puede asegurar...?", "¿cumple?", "¿se aconseja?",
+#   "¿se detiene / se cambia / se acepta?" ............ ENSAYO (H0, H1, valor crítico, decisión)
+#   "estimar", "entre qué valores", "máximo / mínimo
+#    esperado", "con un X% de confianza" .............. INTERVALO (no lleva H0)
+#   "¿cuántas unidades más...?" ........................ TAMAÑO DE MUESTRA (n)
+#   "probabilidad de ... si en realidad es ..." ........ β o 1 − β
+#   "¿sigue un modelo...?", "¿se ajusta...?" ........... CHI CUADRADO (bondad de ajuste)
+#   "¿depende de...?", "¿difieren los porcentajes?" .... CHI CUADRADO (contingencia)
+#   "recta", "por cada ... adicional", "en función de" . REGRESIÓN
+#
 #  cola = signo de H1:  >  "derecha"  ·  <  "izquierda"  ·  ≠  "bilateral"
 #  tipo = "bilateral" (estimar) · "minimo" · "maximo"
 #  "¿se puede asegurar que X?" → X va en H1 · decimales con punto, % entre 0 y 1
@@ -89,6 +100,9 @@
 #  ensayo_varianzas(phi0, alfa, n1, s1, n2, s2, cola, nombres=("1", "2"))     phi0 = 1, o 0.8 si "más de un 20%"
 #
 #  --- UNA PROPORCIÓN · r = cuántos cumplen lo que cuenta p ---
+#  H0 de una proporción:
+#   control de rutina / recepción ("máximo 7% de fallas")  → optimista: H0 = cumple → H1: p > p0 → "derecha"
+#   cambio / inversión ("solo si es menor al 8%")           → pesimista: H0 = no mejora → H1: p < p0 → "izquierda"
 #  "¿cumple?" ................... ensayo_proporcion(p0, n, r, alfa, cola)       p0 = el % de la consigna
 #  "estimar el %" ............... intervalo_proporcion(r, n, confianza, tipo)
 #  "% que no cumple" (tabla) .... r = contar_debajo(tabla, valor)    →    intervalo_proporcion(r, n, confianza, tipo)
