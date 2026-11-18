@@ -425,3 +425,82 @@ def bondad_proporciones(categorias, observados, probabilidades=None, alfa=0.05,
            else f"NO se rechaza H0: se puede considerar que siguen el modelo {modelo}")
     fin()
     return rechaza
+
+
+# CUÁNDO: "¿se puede considerar que tiene distribución EXPONENCIAL?", sobre
+#         todo con clases abiertas ("menos de 100", "más de 130").
+# PARA QUÉ: bondad de ajuste exponencial. F(x) = 1 - e^(-λ·x), con λ = 1 / x̄.
+#   Las clases se cargan igual que siempre; las abiertas con None:
+#     [(None, 100, 55), (100, 110, 109), ..., (130, None, 15)]
+#   "menos de 100" = de 0 a 100 (la exponencial empieza en 0).
+#   λ se estima (p = 1). Para x̄ en una clase abierta de arriba se usa como
+#   marca el borde + la mitad del ancho de la clase vecina (avisa: conviene
+#   confirmarlo con el profe). Si te dan λ o la media: lam=valor (p = 0).
+def bondad_exponencial(clases, alfa=0.05, lam=None):
+    tramos = []
+    for i, (a, b, f) in enumerate(clases):
+        a = 0 if a is None else a
+        tramos.append((a, INF if b is None else b, f))
+    n = sum(f for _, _, f in tramos)
+    titulo("Bondad de ajuste (Chi cuadrado): modelo exponencial")
+    seccion("Hipótesis")
+    linea("H0: los datos siguen el modelo exponencial")
+    linea("H1: no lo siguen")
+    linea(f"Cola derecha   ·   α = {str(alfa).replace('.', ',')}")
+    seccion("Justificación")
+    linea("Prueba Chi cuadrado de bondad de ajuste: se comparan Fo con Fe = n · P(clase),")
+    linea("con F(x) = 1 - e^(-λ·x).")
+    if lam is None:
+        marcas = []
+        avisos = []
+        for i, (a, b, f) in enumerate(tramos):
+            if b == INF:
+                ancho = tramos[i - 1][1] - tramos[i - 1][0]
+                m = a + ancho / 2
+                avisos.append(f"clase \"más de {_num(a)}\": marca = {_num(a)} + {_num(ancho)}/2 = {_num(m)}")
+            else:
+                m = (a + b) / 2
+            marcas.append(m)
+        xm = sum(m * f for m, (_, _, f) in zip(marcas, tramos)) / n
+        lam = 1 / xm
+        p_est = 1
+        seccion("Paso 1 · Parámetro: no lo dan, se estima con x̄ (p = 1)")
+        for av in avisos:
+            linea("Ojo: " + av + "  (confirmar el criterio con el profe)")
+        linea(f"x̄ = Σ (marca · Fo) / n = {xm:.4f}".replace(".", ","))
+        linea(f"λ = 1 / x̄ = {lam:.6f}".replace(".", ","))
+    else:
+        p_est = 0
+        seccion("Paso 1 · Parámetro dado (p = 0)")
+        linea(f"λ = {lam}".replace(".", ","))
+    F = lambda x: 1.0 if x == INF else 1 - math.exp(-lam * x)
+    etiquetas = [f"{_num(a)} a {'+∞' if b == INF else _num(b)}" for a, b, _ in tramos]
+    fo = [f for _, _, f in tramos]
+    probs = [F(b) - F(a) for a, b, _ in tramos]
+    fe = [n * p for p in probs]
+    seccion("Paso 2 · Probabilidad y Fe de cada clase")
+    linea("P(clase) = F(hasta) - F(desde) = e^(-λ·desde) - e^(-λ·hasta)   ·   Fe = n · P")
+    _imprimir_tabla("Tabla con todas las clases", etiquetas, fo, fe, probs)
+    et2, fo2, fe2, grupos = amalgamar(etiquetas, fo, fe, detalle=True)
+    if any(len(g) > 1 for g in grupos):
+        seccion("Paso 3 · Amalgamar (Fe < 5 se junta con la vecina)")
+        _imprimir_tabla("Tabla después de amalgamar", et2, fo2, fe2)
+    k = len(fe2)
+    chi = estadistico_chi2(fo2, fe2)
+    gl = k - 1 - p_est
+    critico = valor_chi2(1 - alfa, gl)
+    rechaza = chi >= critico
+    seccion("Muestra")
+    linea("χ² = Σ (Fo - Fe)² / Fe")
+    linea(f"   = {chi:.4f}".replace(".", ","))
+    seccion("Valor crítico")
+    linea(f"gl = k - 1 - p = {k} - 1 - {p_est} = {gl}")
+    linea(f"χ²c = χ²({1 - alfa:g} ; {gl}) = {critico:.4f}".replace(".", ","))
+    seccion("CR (condición de rechazo)")
+    linea(f"Si χ² ≥ {critico:.4f}  →  se rechaza H0".replace(".", ","))
+    seccion("Decisión")
+    linea(f"χ² = {chi:.4f}  {'≥' if rechaza else '<'}  {critico:.4f}".replace(".", ","))
+    flecha("SE RECHAZA H0: los datos NO siguen el modelo exponencial" if rechaza
+           else "NO se rechaza H0: el modelo exponencial es un buen candidato")
+    fin()
+    return rechaza

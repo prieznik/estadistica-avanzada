@@ -120,7 +120,11 @@
 #  con parámetros dados ......... bondad_ajuste(tabla, "normal", alfa, {"mu": valor, "sigma": valor})
 #  probabilidades dadas/iguales . bondad_proporciones(categorias, observados, probabilidades, alfa)
 #                                 probabilidades = None si son todas iguales, o [p1, p2, ...]
-#  dos proporciones ............. contingencia([[r1, r2], [n1 - r1, n2 - r2]], alfa)
+#  dos proporciones "¿difieren?". contingencia([[r1, r2], [n1 - r1, n2 - r2]], alfa)
+#  dos proporciones con sospecha  comparar_proporciones(r1, n1, r2, n2, alfa, "derecha", nombres=("1", "2"))
+#   ("mañana tiene menos que tarde")  grupo 1 = el que debería tener el % MÁS GRANDE
+#  "prob. de detectar X% más" ... potencia_dos_proporciones(r1, n1, r2, n2, alfa, "derecha", diferencia, nombres)
+#  "¿es exponencial?" ........... bondad_exponencial(tabla, alfa)    clases abiertas con None: [(None, 100, 55), ..., (130, None, 15)]
 #  "¿depende de...?" ............ contingencia(tabla_doble_entrada, alfa)    tabla = [[fila 1], [fila 2], ...]
 #
 #  --- REGRESIÓN · x = la que explica, y = la que se explica ---
