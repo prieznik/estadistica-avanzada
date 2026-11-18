@@ -12,53 +12,55 @@
 #  2. AYUDA: si la consigna dice... → función
 # =====================================================================
 #  cola = signo de H1:  >  "derecha"  ·  <  "izquierda"  ·  ≠  "bilateral"
-#  "¿se puede asegurar que X?" → X va en H1
+#  tipo = "bilateral" (estimar) · "minimo" · "maximo"
+#  "¿se puede asegurar que X?" → X va en H1 · decimales con punto, % entre 0 y 1
 #
 #  --- DATOS ---
-#  tabla con intervalos ......... nA, xA, sA = resumen_tabla([(20, 30, 8), (30, 40, 25)], "A")
-#  valores sueltos .............. nA, xA, sA = resumen_lista([109, 108, 107], "A")
-#  te dan n, x̄ y S .............. nA, xA, sA = 20, 4.6, 0.55
+#  tabla con intervalos ......... n, x, s = resumen_tabla(tabla, "nombre")     tabla = [(desde, hasta, frecuencia), ...]
+#  valores sueltos .............. n, x, s = resumen_lista(lista, "nombre")     lista = [valor, valor, ...]
+#  te dan n, x̄ y S .............. n, x, s = n_dato, media_dato, desvio_dato
 #
-#  --- DOS PROMEDIOS (A vs B) ·  primero el grupo que nombra la frase ---
-#  paso previo Fisher (α 10%) ... metodo = metodo_para_medias(nB, xB, sB, nA, xA, sA, nombres=("B", "A"))
-#  "¿B más que A?" .............. ensayo_medias(metodo, 0, 0.05, nB, xB, sB, nA, xA, sA, "derecha", nombres=("B", "A"))
-#  "¿más de un 10% más?" ........ igual, agregando h=1.10   ("10% menos" → h=0.90)
-#  "¿difieren?" ................. igual, con "bilateral"
-#  "5 unidades más" ............. delta0 = 5 (si no da cantidad, delta0 = 0)
-#  σ "históricos" (conocidos) ... metodo = "conocidos" (Z, sin Fisher)
-#  "diferencia mínima/máxima" ... intervalo_diferencia(metodo, 0.90, nB, xB, sB, nA, xA, sA, "minimo", nombres=("B", "A"))
-#  "incremento % mínimo" ........ h_limite(metodo, 0.05, nB, xB, sB, nA, xA, sA, "derecha", nombres=("B", "A"))
+#  --- DOS PROMEDIOS · grupo 1 = el que nombra la frase ("B más que A" → 1 = B) ---
+#  paso previo Fisher (α 10%) ... metodo = metodo_para_medias(n1, x1, s1, n2, x2, s2, nombres=("1", "2"))
+#  "¿1 más que 2?" .............. ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, nombres=("1", "2"))
+#                                 delta0 = 0 si no da cantidad ("5 unidades más" → 5)
+#  "¿más de un X% más?" ......... igual, agregando h=1.X   ("10% más" → h=1.10 · "10% menos" → h=0.90)
+#  σ "históricos" (conocidos) ... metodo = "conocidos"  (Z, sin Fisher)
+#  "diferencia mínima/máxima" ... intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo, nombres=("1", "2"))
+#  "incremento % mínimo" ........ h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, "derecha", nombres=("1", "2"))
 #
 #  --- APAREADAS (mismos individuos, "antes y después") · sin Fisher ---
-#  ensayo ....................... ensayo_apareadas(antes, despues, 0, 0.05, "derecha", nombres=("Antes", "Después"))
-#  intervalo .................... intervalo_apareadas(antes, despues, 0.90, "bilateral", nombres=("Antes", "Después"))
+#  ensayo ....................... ensayo_apareadas(lista1, lista2, delta0, alfa, cola, nombres=("1", "2"))
+#  intervalo .................... intervalo_apareadas(lista1, lista2, confianza, tipo, nombres=("1", "2"))
 #
 #  --- FISHER COMO PREGUNTA ("más regular", "reduce el desvío un 20%") ---
-#  ensayo_varianzas(1, 0.05, nB, sB, nA, sA, "derecha", nombres=("B", "A"))     phi0 = 0.8 si "más de un 20%"
+#  ensayo_varianzas(phi0, alfa, n1, s1, n2, s2, cola, nombres=("1", "2"))     phi0 = 1, o 0.8 si "más de un 20%"
 #
-#  --- UNA PROPORCIÓN · r cuenta lo mismo que p ---
-#  "¿cumple?" ................... ensayo_proporcion(0.07, 95, 8, 0.05, "derecha")
-#  "estimar el %" ............... intervalo_proporcion(8, 95, 0.95, "bilateral")     o "maximo" / "minimo"
-#  "% que no cumple" (tabla) .... r = contar_debajo(tabla, 8)   →   intervalo_proporcion(r, n, 0.95, "bilateral")
-#  "¿cuántas más?" (error e) .... n_para_error_proporcion(8/95, 0.04, 0.95)      más = n − el n que tenías
-#  "prob. de (no) detectar p1" .. rc = valor_critico_proporcion(0.07, 95, 0.05, "derecha")
-#                                 beta_proporcion(rc, 95, 0.12, "derecha")       detectar = 1 − β
+#  --- UNA PROPORCIÓN · r = cuántos cumplen lo que cuenta p ---
+#  "¿cumple?" ................... ensayo_proporcion(p0, n, r, alfa, cola)       p0 = el % de la consigna
+#  "estimar el %" ............... intervalo_proporcion(r, n, confianza, tipo)
+#  "% que no cumple" (tabla) .... r = contar_debajo(tabla, valor)    →    intervalo_proporcion(r, n, confianza, tipo)
+#                                 (contar_encima(tabla, valor) para "por encima de")
+#  "¿cuántas más?" (error e) .... n_para_error_proporcion(r / n, e, confianza)   más = n nuevo − n que tenías
+#  "prob. de (no) detectar p1" .. rc = valor_critico_proporcion(p0, n, alfa, cola)
+#                                 beta_proporcion(rc, n, p1, cola)                detectar = 1 − β
 #
 #  --- CHI CUADRADO ---
-#  "¿sigue un modelo?" (tabla) .. bondad_ajuste(tabla, "normal", 0.05)    gamma, lognormal, weibull, gumbel_min, gumbel_max
-#  con parámetros dados ......... bondad_ajuste(tabla, "normal", 0.05, {"mu": 20, "sigma": 2.5})
-#  probabilidades dadas/iguales . bondad_proporciones([1, 2, 3, 4, 5, 6], [14, 6, 6, 13, 16, 5], None, 0.05)
-#                                 bondad_proporciones(["24", "36", "40"], [85, 65, 50], [0.4, 0.4, 0.2], 0.05)
-#  dos proporciones ............. contingencia([[5, 7], [104, 96]], 0.05)    fila 1 = éxitos, fila 2 = el resto
-#  "¿depende de...?" ............ contingencia([[32, 45, 23], [14, 51, 15]], 0.05)
+#  "¿sigue un modelo?" (tabla) .. bondad_ajuste(tabla, modelo, alfa)     modelo = "normal", "gamma", "lognormal",
+#                                                                         "weibull", "gumbel_min", "gumbel_max"
+#  con parámetros dados ......... bondad_ajuste(tabla, "normal", alfa, {"mu": valor, "sigma": valor})
+#  probabilidades dadas/iguales . bondad_proporciones(categorias, observados, probabilidades, alfa)
+#                                 probabilidades = None si son todas iguales, o [p1, p2, ...]
+#  dos proporciones ............. contingencia([[r1, r2], [n1 - r1, n2 - r2]], alfa)
+#  "¿depende de...?" ............ contingencia(tabla_doble_entrada, alfa)    tabla = [[fila 1], [fila 2], ...]
 #
 #  --- REGRESIÓN · x = la que explica, y = la que se explica ---
-#  recta + validar + r² ......... regresion_simple(x, y, 0.05)
-#  "¿baja en más de 0,5?" ....... ensayo_pendiente(x, y, -0.5, 0.05, "izquierda")
-#  "contribución marginal" ...... intervalo_pendiente(x, y, 0.95)
-#  "fuerza de la relación" ...... intervalo_correlacion(x, y, 0.95)
-#  y PROMEDIO para x0 ........... estimar_media_regresion(x, y, 16, 0.95)
-#  y de UN caso con x0 .......... predecir_regresion(x, y, 16, 0.95)
+#  recta + validar + r² ......... regresion_simple(x, y, alfa)              x, y = listas
+#  "¿baja/sube en más de V?" .... ensayo_pendiente(x, y, beta10, alfa, cola)   "baja más de 0,5" → beta10 = -0.5, "izquierda"
+#  "contribución marginal" ...... intervalo_pendiente(x, y, confianza)
+#  "fuerza de la relación" ...... intervalo_correlacion(x, y, confianza)
+#  y PROMEDIO para x0 ........... estimar_media_regresion(x, y, x0, confianza)
+#  y de UN caso con x0 .......... predecir_regresion(x, y, x0, confianza)
 
 import _ruta
 from formulas import *
