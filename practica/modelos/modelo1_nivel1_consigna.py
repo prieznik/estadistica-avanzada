@@ -243,7 +243,10 @@ print("Se deben revisar", nMAS, "piezas más para que el error sea del 2%.")
 
 
 # --- 3 a) b) c) ---
+horas= [10,12,15,18,20,22,25,28]
+errores= [14,12,12,9,10,7,7,4]
 
+regresion_simple(horas, errores, 0.05, nombres=("Horas", "Errores"))
 
 # Conclusión en palabras:
 #
