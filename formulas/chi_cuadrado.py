@@ -348,3 +348,70 @@ def contingencia(tabla, alfa=0.05):
            else "NO se rechaza H0: no se puede asegurar que haya relación")
     fin()
     return rechaza
+
+
+# CUÁNDO: bondad de ajuste con las PROBABILIDADES DADAS o iguales, sin tabla
+#         de intervalos: "¿el dado está cargado?", "¿las instalaciones están
+#         igualmente distribuidas entre las 4 zonas?", "históricamente el 40%
+#         es de 24", el 40% de 36" y el 20% de 40"... ¿cambió?" (guía VI, 10 a 13).
+# PARA QUÉ: Fe = n · p_i, χ² = Σ (Fo - Fe)² / Fe, gl = k - 1 - p.
+#   categorias = nombres de cada clase, ej: ["1", "2", "3", "4", "5", "6"]
+#   observados = Fo de cada clase, ej: [14, 6, 6, 13, 16, 5]
+#   probabilidades = None si todas son iguales (modelo uniforme),
+#                    o la lista, ej: [0.40, 0.40, 0.20]
+#   p_estimados = parámetros estimados con la muestra (casi siempre 0)
+def bondad_proporciones(categorias, observados, probabilidades=None, alfa=0.05,
+                        p_estimados=0, nombre_modelo=None):
+    k0 = len(observados)
+    if probabilidades is None:
+        probabilidades = [1 / k0] * k0
+        modelo = nombre_modelo or "uniforme (todas las clases con la misma probabilidad)"
+    else:
+        modelo = nombre_modelo or "con las proporciones dadas"
+    if abs(sum(probabilidades) - 1) > 1e-6:
+        raise ValueError(f"Las probabilidades suman {sum(probabilidades):.4f}: tienen que sumar 1.")
+    n = sum(observados)
+    fe = [n * p for p in probabilidades]
+    et = [str(c) for c in categorias]
+    titulo("Bondad de ajuste (Chi cuadrado) con probabilidades dadas")
+    seccion("Hipótesis")
+    linea(f"H0: los datos siguen el modelo {modelo}")
+    linea("H1: no lo siguen")
+    linea(f"Cola derecha   ·   α = {str(alfa).replace('.', ',')}")
+    seccion("Justificación")
+    linea("Prueba Chi cuadrado de bondad de ajuste: se comparan las frecuencias")
+    linea("observadas (Fo) con las esperadas según el modelo (Fe = n · p_i).")
+    seccion("Paso 1 · Fe de cada clase")
+    linea(f"Fe = n · p_i   (n = {n:g})")
+    _imprimir_tabla("Tabla", et, observados, fe, probabilidades)
+    et2, fo2, fe2, grupos = amalgamar(et, observados, fe, detalle=True)
+    if any(len(g) > 1 for g in grupos):
+        seccion("Paso 2 · Amalgamar (Fe < 5 se junta con la vecina)")
+        _imprimir_tabla("Tabla después de amalgamar", et2, fo2, fe2)
+    k = len(fe2)
+    chi = estadistico_chi2(fo2, fe2)
+    gl = k - 1 - p_estimados
+    critico = valor_chi2(1 - alfa, gl)
+    rechaza = chi >= critico
+    seccion("Muestra")
+    linea("χ² = Σ (Fo - Fe)² / Fe")
+    linea("   = " + " + ".join(f"({o:g} - {e:.2f})²/{e:.2f}" for o, e in zip(fo2, fe2)).replace(".", ","))
+    linea(f"   = {chi:.4f}".replace(".", ","))
+    seccion("Valor crítico")
+    linea("gl = k - 1 - p")
+    linea(f"   = {k} - 1 - {p_estimados}")
+    linea(f"   = {gl}")
+    linea()
+    linea("χ²c = χ²(1-α ; gl)")
+    linea(f"    = χ²({1 - alfa:g} ; {gl})".replace(".", ","))
+    linea(f"    = {critico:.4f}".replace(".", ","))
+    seccion("CR (condición de rechazo)")
+    linea(f"Si χ² ≥ {critico:.4f}  →  se rechaza H0".replace(".", ","))
+    seccion("RD (regla de decisión)")
+    linea(f"Si se rechaza H0  →  los datos no siguen el modelo {modelo}")
+    seccion("Decisión")
+    linea(f"χ² = {chi:.4f}  {'≥' if rechaza else '<'}  {critico:.4f}".replace(".", ","))
+    flecha(f"SE RECHAZA H0: los datos NO siguen el modelo {modelo}" if rechaza
+           else f"NO se rechaza H0: se puede considerar que siguen el modelo {modelo}")
+    fin()
+    return rechaza

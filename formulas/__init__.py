@@ -38,7 +38,7 @@ from formulas.regresion import (
     regresion_simple, ensayo_pendiente, intervalo_pendiente, intervalo_correlacion,
     estimar_media_regresion, predecir_regresion,
 )
-from formulas.chi_cuadrado import bondad_ajuste, contingencia, valor_chi2, estimar_parametros
+from formulas.chi_cuadrado import bondad_ajuste, bondad_proporciones, contingencia, valor_chi2, estimar_parametros
 
 
 _AYUDA = """

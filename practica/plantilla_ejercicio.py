@@ -122,6 +122,11 @@
 #      modelo: "normal", "lognormal", "gamma", "weibull", "gumbel_min", "gumbel_max"
 #      Si te dan los parámetros: bondad_ajuste(tabla, "normal", 0.05, {"mu": 20, "sigma": 2.5})
 #      Ej:  bondad_ajuste(tablaB, "normal", 0.05)
+#  bondad_proporciones(categorias, observados, probabilidades=None, alfa)
+#      Sin intervalos, con probabilidades DADAS o iguales ("¿el dado está
+#      cargado?", "¿igualmente distribuidas?", "históricamente el 40%...").
+#      Ej:  bondad_proporciones([1, 2, 3, 4, 5, 6], [14, 6, 6, 13, 16, 5], None, 0.05)
+#      Ej:  bondad_proporciones(['24"', '36"', '40"'], [85, 65, 50], [0.40, 0.40, 0.20], 0.05)
 #  contingencia(tabla_doble_entrada, alfa)     "¿depende de...?"
 #      También sirve para COMPARAR DOS PROPORCIONES (prueba de consistencia):
 #      "turno mañana 109 productos, 5 defectuosos; tarde 103, 7 defectuosos"
