@@ -145,6 +145,10 @@
   --- 5.3 APAREADAS  (sin Fisher) ------------------------------------
 
   ensayo:     ensayo_apareadas(lista1, lista2, delta0, alfa, cola, nombres=("1", "2"))
+     ⚠ "reduce / baja el tiempo en más de 3" → antes tenía MÁS:
+        ensayo_apareadas(antes, despues, 3, alfa, "derecha")
+     ⚠ "aumenta en más de 3" → después tiene MÁS:
+        ensayo_apareadas(despues, antes, 3, alfa, "derecha")
   intervalo:  intervalo_apareadas(lista1, lista2, confianza, tipo, nombres=("1", "2"))
 
 
@@ -164,6 +168,8 @@
 
   "% que no cumple" con tabla:
      r = contar_debajo(tabla, valor)      ("por encima de" → contar_encima)
+        ⚠ valor = el corte EN LAS UNIDADES DE LA TABLA ("menos de 14 kg" → 14, NO 0.14)
+        ⚠ no hay p0 para cargar: el % es lo que estimás
      intervalo_proporcion(r, n, confianza, tipo)
 
   "¿cuántas más?" (error e):
@@ -171,6 +177,7 @@
 
   "probabilidad de ... si en realidad es X%"   (p_estrella = ese X%):
      rc = valor_critico_proporcion(p0, n, alfa, cola)
+        ⚠ cola = LA MISMA del ensayo de ese ejercicio
      beta_proporcion(rc, n, p_estrella, cola)
         si es RECHAZAR H0 (detectar, detener, cambiar) → la respuesta es 1 − β
         si es NO rechazar (no detectar, aceptar)       → la respuesta es β
@@ -224,7 +231,8 @@
   y PROMEDIO para x0 ("los operarios con 16 horas"):
      estimar_media_regresion(x, y, x0, confianza, nombres=("X", "Y"))
 
-  y de UN caso con x0 ("un operario", "un empleado nuevo"):
+  y de UN caso con x0 ("un operario", "un empleado nuevo",
+  "si MAÑANA trabaja a...", "la semana que viene", un día concreto):
      predecir_regresion(x, y, x0, confianza, nombres=("X", "Y"))
         → da más ancho que el del promedio
 
@@ -235,7 +243,7 @@
 
   Decimales con PUNTO ........... 0.05      (no 0,05)
   Porcentajes entre 0 y 1 ....... 7% → 0.07
-  Palabras fijas, entre comillas  "derecha"  "izquierda"  "bilateral"  "minimo"  "maximo"
+  ⚠ Palabras fijas, SIEMPRE entre comillas  "derecha"  "izquierda"  "bilateral"  "minimo"  "maximo"
   # al principio de la línea .... comentario: Python no lo lee
 
   Lista de valores sueltos:
