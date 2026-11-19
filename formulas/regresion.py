@@ -85,6 +85,8 @@ def regresion_simple(x, y, alfa=0.05, nombres=("x", "y")):
     titulo("Regresión lineal simple")
     seccion("Variables")
     linea(f"x = {nx}   (explicativa)      y = {ny}   (a explicar)")
+    print()
+    print("  ── HALLAR LA RECTA ──")
     seccion("Sumas")
     linea(f"n = {n}   Σx = {_g(c['sx'])}   x̄ = {_n(c['xm'])}   Σx² = {_g(c['sx2'])}")
     linea(f"Σy = {_g(c['sy'])}   ȳ = {_n(c['ym'])}   Σy² = {_g(c['sy2'])}   Σyx = {_g(c['sxy'])}")
@@ -97,7 +99,7 @@ def regresion_simple(x, y, alfa=0.05, nombres=("x", "y")):
     linea("b0 = ȳ - b1·x̄")
     linea(f"   = {_n(c['ym'])} - ({_n(c['b1'])})·{_n(c['xm'])}")
     linea(f"   = {_n(c['b0'])}")
-    seccion("Recta de mínimos cuadrados   [inciso: hallar la recta / construir el modelo]")
+    seccion("Recta de mínimos cuadrados")
     linea("(\"hallar la recta\" = calcular b0 y b1 y escribir la ecuación)")
     flecha(_recta(c))
     seccion("Interpretación (en palabras, para la hoja)")
@@ -109,7 +111,9 @@ def regresion_simple(x, y, alfa=0.05, nombres=("x", "y")):
     if not (xmin <= 0 <= xmax):
         linea(f"     Es una extrapolación: x = 0 está fuera del rango observado ({_g(xmin)} a {_g(xmax)}).")
 
-    seccion("Desvíos   [van en: validar, porque tc usa Sb1]")
+    print()
+    print("  ── VALIDAR EL MODELO ──")
+    seccion("Desvíos   (se calculan primero porque tc = b1 / Sb1 los necesita)")
     linea("S   = √( (Σy² - b0·Σy - b1·Σyx) / (n - 2) )")
     linea(f"    = √( ({_g(c['sy2'])} - {_n(c['b0'])}·{_g(c['sy'])} - ({_n(c['b1'])})·{_g(c['sxy'])}) / {n - 2} )")
     linea(f"    = {_n(c['s'])}")
@@ -117,21 +121,10 @@ def regresion_simple(x, y, alfa=0.05, nombres=("x", "y")):
     linea(f"    = {_n(c['s'])} / √({_n(c['sxx'])})")
     linea(f"    = {_n(c['sb1'])}")
 
-    seccion("Correlación y determinación   [inciso: \"qué % se explica\" / fuerza]")
-    linea("r  = (Σyx - n·x̄·ȳ) / √( (Σx² - n·x̄²)·(Σy² - n·ȳ²) )")
-    linea(f"   = {_n(c['r'])}")
-    sentido = "directa: cuando sube " + nx + ", sube " + ny if c["r"] >= 0 else "inversa: cuando sube " + nx + ", baja " + ny
-    linea("   r mide la fuerza de la relación (de -1 a 1).")
-    linea(f"   Es {sentido}.")
-    r2 = c["r"] ** 2
-    linea(f"r² = {_n(r2)}")
-    flecha(f"El {_n(r2 * 100, 2)}% de la variación de {ny} se explica por {nx};")
-    linea(f"  el {_n(100 - r2 * 100, 2)}% restante se debe a otros factores.")
-
     tobs = c["b1"] / c["sb1"]
     tc = t.ppf(1 - alfa, n - 2)
     rechaza = abs(tobs) > tc
-    seccion("Validación del modelo   [inciso: validar el modelo]")
+    seccion("Hipótesis")
     linea("H0: β1 = 0      H1: β1 ≠ 0")
     linea(f"  H0 en palabras: {nx} no influye en {ny}")
     linea(f"  (por cada unidad más de {nx}, {ny} cambia 0). Si se rechaza, el modelo sirve.")
@@ -157,6 +150,19 @@ def regresion_simple(x, y, alfa=0.05, nombres=("x", "y")):
     else:
         flecha(f"NO se rechaza H0: no se puede afirmar que {nx} influya en {ny}")
         linea("  (el modelo no es válido).")
+    print()
+    print("  ── QUÉ % SE EXPLICA / FUERZA DE LA RELACIÓN ──")
+    seccion("Correlación y determinación")
+    linea("r  = (Σyx - n·x̄·ȳ) / √( (Σx² - n·x̄²)·(Σy² - n·ȳ²) )")
+    linea(f"   = {_n(c['r'])}")
+    sentido = "directa: cuando sube " + nx + ", sube " + ny if c["r"] >= 0 else "inversa: cuando sube " + nx + ", baja " + ny
+    linea("   r mide la fuerza de la relación (de -1 a 1).")
+    linea(f"   Es {sentido}.")
+    r2 = c["r"] ** 2
+    linea(f"r² = {_n(r2)}")
+    flecha(f"El {_n(r2 * 100, 2)}% de la variación de {ny} se explica por {nx};")
+    linea(f"  el {_n(100 - r2 * 100, 2)}% restante se debe a otros factores.")
+
     fin()
     c["t_obs"] = tobs
     return c
