@@ -76,7 +76,8 @@
 #  "¿depende de...?" ............ contingencia(tabla_doble_entrada, alfa)    tabla = [[fila 1], [fila 2], ...]
 #
 #  --- REGRESIÓN · x = la que explica, y = la que se explica ---
-#  recta + validar + r² ......... regresion_simple(x, y, alfa)              x, y = listas
+#  recta + validar + r² ......... regresion_simple(x, y, alfa, nombres=("Horas", "Errores"))   x, y = listas
+#                                 (todas aceptan nombres=: así el print escribe las frases con tus variables)
 #  "¿baja/sube en más de V?" .... ensayo_pendiente(x, y, beta10, alfa, cola)   "baja más de 0,5" → beta10 = -0.5, "izquierda"
 #  "contribución marginal" ...... intervalo_pendiente(x, y, confianza)
 #  "fuerza de la relación" ...... intervalo_correlacion(x, y, confianza)
