@@ -74,6 +74,27 @@
 #   "¿depende de...?", "¿difieren los porcentajes?" .... CHI CUADRADO (contingencia)
 #   "recta", "por cada ... adicional", "en función de" . REGRESIÓN
 #
+#  ⚠ LOS 4 ERRORES QUE MÁS COMETO (leer antes de cada ejercicio)
+#  1) ¿QUÉ TEMA ES? Mirá los DATOS, no la frase "por cada":
+#     dos variables con UNIDADES DISTINTAS (horas y errores) ........ REGRESIÓN
+#     misma variable, MISMOS individuos antes/después ............... APAREADAS
+#     misma variable, dos GRUPOS distintos (A y B) .................. DOS PROMEDIOS
+#     tabla filas × columnas con CANTIDADES de casos, "¿depende de?". CONTINGENCIA
+#  2) H1 = LO QUE ME HACE ACTUAR
+#     "¿se puede asegurar que X?" ............ H1 = X
+#     control / recepción / "¿se acepta?" .... H1 = la ALARMA (p > p0) → "derecha"
+#     cambio / inversión / "¿conviene?" ...... H1 = la MEJORA (p < p0) → "izquierda"
+#  3) QUIÉN ES 1 Y QUIÉN ES 2 (promedios y apareadas)
+#     1 = el que la frase dice que tiene MÁS → así la cola es "derecha"
+#     "A resiste más que B" → 1 = A · "el curso aumentó" → 1 = después
+#     "el curso redujo los errores" → 1 = antes (antes tenía más)
+#     delta0 = el "más de N" de la frase (sin número → 0)
+#  4) REGRESIÓN: QUIÉN ES x
+#     x = lo que va después de "por cada" o de "en función de" · y = lo que responde
+#     "por cada grado más, las ventas..." → x = temperatura, y = ventas
+#     beta10 = el número con su signo: "aumenta más de 1,5" → 1.5, "derecha"
+#                                      "disminuye más de 1,5" → -1.5, "izquierda"
+#
 #  cola = signo de H1:  >  "derecha"  ·  <  "izquierda"  ·  ≠  "bilateral"
 #  tipo = "bilateral" (estimar) · "minimo" · "maximo"
 #  "¿se puede asegurar que X?" → X va en H1 · decimales con punto, % entre 0 y 1
