@@ -248,11 +248,10 @@ errores= [14,12,12,9,10,7,7,4]
 
 regresion_simple(horas, errores, 0.05, nombres=("Horas", "Errores"))
 
-# Conclusión en palabras:
-#
 
 
 # --- 3 d) ---
+estimar_media_regresion(horas, errores, 16, 0.95) 
 
 
 # Conclusión en palabras:
