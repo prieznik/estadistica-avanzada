@@ -130,7 +130,9 @@
   "¿1 más que 2?":
      ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, nombres=("1", "2"))
 
-  "¿más de un X% más?":    igual, agregando h=1.10 al final  ("10% menos" → h=0.90)
+  "¿1 más de un X% más que 2?"  (la consigna TE DA el %):
+     ensayo_medias(metodo, 0, alfa, n1, x1, s1, n2, x2, s2, cola, h=1.10, nombres=("1", "2"))
+        "10% más" → h=1.10 · "10% menos" → h=0.90 · con h, delta0 = 0
   σ "históricos" / conocidos:    metodo = "conocidos"   (sin Fisher)
 
   "diferencia mínima / máxima":
