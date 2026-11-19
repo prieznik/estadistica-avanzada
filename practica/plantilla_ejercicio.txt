@@ -1,123 +1,252 @@
-# =====================================================================
-#  1. CONSIGNA
-# =====================================================================
-#  [Pegá o resumí la consigna acá]
-#
-#  a)
-#  b)
-#  c)
+=====================================================================
+                    GUÍA PARA EL EXAMEN
+=====================================================================
+
+  ÍNDICE
+    1. PASOS PARA CADA EJERCICIO
+    2. ¿QUÉ ME PIDEN?              (mirá el verbo)
+    3. ¿QUÉ TEMA ES?               (mirá los datos)
+    4. REGLAS: H1, grupo 1, cola, tipo
+    5. FUNCIONES POR TEMA
+         5.1 Datos (n, x̄, S)
+         5.2 Dos promedios
+         5.3 Apareadas
+         5.4 Fisher como pregunta
+         5.5 Una proporción
+         5.6 Chi cuadrado
+         5.7 Regresión
+    6. CÓMO SE ESCRIBE EN PYTHON
 
 
-# =====================================================================
-#  2. AYUDA: si la consigna dice... → función
-# =====================================================================
-#  PASO 0 · ¿QUÉ ME PIDEN? (mirá el verbo de la consigna)
-#   "¿se puede asegurar...?", "¿cumple?", "¿se aconseja?",
-#   "¿se detiene / se cambia / se acepta?" ............ ENSAYO (H0, H1, valor crítico, decisión)
-#   "estimar", "entre qué valores", "máximo / mínimo
-#    esperado", "con un X% de confianza" .............. INTERVALO (no lleva H0)
-#   "¿cuántas unidades más...?" ........................ TAMAÑO DE MUESTRA (n)
-#   "probabilidad de ... si en realidad es ..." ........ β o 1 − β
-#   "¿sigue un modelo...?", "¿se ajusta...?" ........... CHI CUADRADO (bondad de ajuste)
-#   "¿depende de...?", "¿difieren los porcentajes?" .... CHI CUADRADO (contingencia)
-#   "recta", "por cada ... adicional", "en función de" . REGRESIÓN
-#
-#  ⚠ LOS 4 ERRORES QUE MÁS COMETO (leer antes de cada ejercicio)
-#  1) ¿QUÉ TEMA ES? Mirá los DATOS, no la frase "por cada":
-#     dos variables con UNIDADES DISTINTAS (horas y errores) ........ REGRESIÓN
-#     misma variable, MISMOS individuos antes/después ............... APAREADAS
-#     misma variable, dos GRUPOS distintos (A y B) .................. DOS PROMEDIOS
-#     tabla filas × columnas con CANTIDADES de casos, "¿depende de?". CONTINGENCIA
-#  2) H1 = LO QUE ME HACE ACTUAR
-#     "¿se puede asegurar que X?" ............ H1 = X
-#     control / recepción / "¿se acepta?" .... H1 = la ALARMA (p > p0) → "derecha"
-#     cambio / inversión / "¿conviene?" ...... H1 = la MEJORA (p < p0) → "izquierda"
-#  3) QUIÉN ES 1 Y QUIÉN ES 2 (promedios y apareadas)
-#     1 = el que la frase dice que tiene MÁS → así la cola es "derecha"
-#     "A resiste más que B" → 1 = A · "el curso aumentó" → 1 = después
-#     "el curso redujo los errores" → 1 = antes (antes tenía más)
-#     delta0 = el "más de N" de la frase (sin número → 0)
-#  4) REGRESIÓN: QUIÉN ES x
-#     x = lo que va después de "por cada" o de "en función de" · y = lo que responde
-#     "por cada grado más, las ventas..." → x = temperatura, y = ventas
-#     beta10 = el número con su signo: "aumenta más de 1,5" → 1.5, "derecha"
-#                                      "disminuye más de 1,5" → -1.5, "izquierda"
-#
-#  cola = signo de H1:  >  "derecha"  ·  <  "izquierda"  ·  ≠  "bilateral"
-#  tipo = "bilateral" (estimar) · "minimo" · "maximo"
-#  "¿se puede asegurar que X?" → X va en H1 · decimales con punto, % entre 0 y 1
-#
-#  --- DATOS ---
-#  tabla con intervalos ......... n, x, s = resumen_tabla(tabla, "nombre")     tabla = [(desde, hasta, frecuencia), ...]
-#  valores sueltos .............. n, x, s = resumen_lista(lista, "nombre")     lista = [valor, valor, ...]
-#  te dan n, x̄ y S .............. n, x, s = n_dato, media_dato, desvio_dato
-#
-#  --- DOS PROMEDIOS · grupo 1 = el que nombra la frase ("B más que A" → 1 = B) ---
-#  paso previo Fisher (α 10%) ... metodo = metodo_para_medias(n1, x1, s1, n2, x2, s2, nombres=("1", "2"))
-#  "¿1 más que 2?" .............. ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, nombres=("1", "2"))
-#                                 delta0 = 0 si no da cantidad ("5 unidades más" → 5)
-#  "¿más de un X% más?" ......... igual, agregando h=1.X   ("10% más" → h=1.10 · "10% menos" → h=0.90)
-#  σ "históricos" (conocidos) ... metodo = "conocidos"  (Z, sin Fisher)
-#  "diferencia mínima/máxima" ... intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo, nombres=("1", "2"))
-#  "incremento % mínimo" ........ h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, "derecha", nombres=("1", "2"))
-#
-#  --- APAREADAS (mismos individuos, "antes y después") · sin Fisher ---
-#  ensayo ....................... ensayo_apareadas(lista1, lista2, delta0, alfa, cola, nombres=("1", "2"))
-#  intervalo .................... intervalo_apareadas(lista1, lista2, confianza, tipo, nombres=("1", "2"))
-#
-#  --- FISHER COMO PREGUNTA ("más regular", "reduce el desvío un 20%") ---
-#  ensayo_varianzas(phi0, alfa, n1, s1, n2, s2, cola, nombres=("1", "2"))     phi0 = 1, o 0.8 si "más de un 20%"
-#
-#  --- UNA PROPORCIÓN · r = cuántos cumplen lo que cuenta p ---
-#  H0 de una proporción:
-#   control de rutina / recepción ("máximo 7% de fallas")  → optimista: H0 = cumple → H1: p > p0 → "derecha"
-#   cambio / inversión ("solo si es menor al 8%")           → pesimista: H0 = no mejora → H1: p < p0 → "izquierda"
-#  "¿cumple?" ................... ensayo_proporcion(p0, n, r, alfa, cola)       p0 = el % de la consigna
-#  "estimar el %" ............... intervalo_proporcion(r, n, confianza, tipo)
-#  "% que no cumple" (tabla) .... r = contar_debajo(tabla, valor)    →    intervalo_proporcion(r, n, confianza, tipo)
-#                                 (contar_encima(tabla, valor) para "por encima de")
-#  "¿cuántas más?" (error e) .... n_para_error_proporcion(r / n, e, confianza)   más = n nuevo − n que tenías
-#  "probabilidad de ... si en realidad es X%"  →  β o 1 − β    (p* = ese X%, en la guía p1)
-#                                 rc = valor_critico_proporcion(p0, n, alfa, cola)      misma cola que el ensayo
-#                                 beta_proporcion(rc, n, p_estrella, cola)
-#                                 pasa al RECHAZAR H0 (detectar, detener, cambiar) → 1 − β
-#                                 pasa al NO rechazar (no detectar, aceptar)        → β
-#
-#  --- CHI CUADRADO ---
-#  "¿sigue un modelo?" (tabla) .. bondad_ajuste(tabla, modelo, alfa)     modelo = "normal", "gamma", "lognormal",
-#                                                                         "weibull", "gumbel_min", "gumbel_max"
-#  con parámetros dados ......... bondad_ajuste(tabla, "normal", alfa, {"mu": valor, "sigma": valor})
-#  probabilidades dadas/iguales . bondad_proporciones(categorias, observados, probabilidades, alfa)
-#                                 probabilidades = None si son todas iguales, o [p1, p2, ...]
-#  dos proporciones "¿difieren?". contingencia([[r1, r2], [n1 - r1, n2 - r2]], alfa)
-#  dos proporciones con sospecha  comparar_proporciones(r1, n1, r2, n2, alfa, "derecha", nombres=("1", "2"))
-#   ("mañana tiene menos que tarde")  grupo 1 = el que debería tener el % MÁS GRANDE
-#  "prob. de detectar X% más" ... potencia_dos_proporciones(r1, n1, r2, n2, alfa, "derecha", diferencia, nombres)
-#  "¿es exponencial?" ........... bondad_exponencial(tabla, alfa)    clases abiertas con None: [(None, 100, 55), ..., (130, None, 15)]
-#  "¿depende de...?" ............ contingencia(tabla_doble_entrada, alfa)    tabla = [[fila 1], [fila 2], ...]
-#
-#  --- REGRESIÓN · x = la que explica, y = la que se explica ---
-#  recta + validar + r² ......... regresion_simple(x, y, alfa, nombres=("Horas", "Errores"))   x, y = listas
-#                                 (todas aceptan nombres=: así el print escribe las frases con tus variables)
-#  "¿baja/sube en más de V?" .... ensayo_pendiente(x, y, beta10, alfa, cola)   "baja más de 0,5" → beta10 = -0.5, "izquierda"
-#  "contribución marginal" ...... intervalo_pendiente(x, y, confianza)
-#  "fuerza de la relación" ...... intervalo_correlacion(x, y, confianza)
-#  y PROMEDIO para x0 ........... estimar_media_regresion(x, y, x0, confianza)
-#  y de UN caso con x0 .......... predecir_regresion(x, y, x0, confianza)
+=====================================================================
+  1. PASOS PARA CADA EJERCICIO
+=====================================================================
 
-import _ruta
-from formulas import *
+  1) Abrí examen.py (ya tiene los import).
+  2) Cargá los datos de la consigna (ver 6).
+  3) Para cada inciso:
+       a. ¿Qué me piden?  → sección 2
+       b. ¿Qué tema es?   → sección 3
+       c. H1, grupo 1 y cola → sección 4
+       d. Buscá la función en la sección 5, copiala y cambiá cada
+          nombre de parámetro por su número.
+       e. Corré (▶) y copiá el print en la hoja.
+       f. Escribí la conclusión en palabras, con las variables del
+          ejercicio.
+  4) Si algo te traba, salteá el inciso y seguí.
 
 
-# =====================================================================
-#  3. RESOLUCIÓN
-# =====================================================================
+=====================================================================
+  2. ¿QUÉ ME PIDEN?  (el verbo de la consigna)
+=====================================================================
 
-# a)
+  "¿se puede asegurar...?", "¿cumple?", "¿se acepta?",
+  "¿se detiene / se cambia / conviene?" .......... ENSAYO (H0, H1, CR, decisión)
+
+  "estimar", "entre qué valores", "como mínimo /
+  máximo", "con un X% de confianza" ............... INTERVALO (no lleva H0)
+
+  "¿cuántas unidades más...?" ..................... TAMAÑO DE MUESTRA
+
+  "probabilidad de ... si en realidad es ..." ..... β o 1 − β
+
+  "¿sigue / se ajusta a un modelo...?" ............ CHI: bondad de ajuste
+
+  "¿depende de...?", "¿difieren los %?" ........... CHI: contingencia
+
+  "recta", "por cada ... más", "en función de" .... REGRESIÓN
 
 
-# b)
+=====================================================================
+  3. ¿QUÉ TEMA ES?  (mirá los DATOS, no solo la frase)
+=====================================================================
+
+  Dos variables con UNIDADES DISTINTAS
+  (horas y errores, temperatura y ventas) ............ REGRESIÓN (5.7)
+
+  La MISMA variable, a los MISMOS individuos
+  dos veces (antes / después) ........................ APAREADAS (5.3)
+
+  La MISMA variable en dos GRUPOS distintos
+  (proveedor A y B, turno mañana y tarde) ............ DOS PROMEDIOS (5.2)
+
+  Cuántos cumplen / fallan de un total
+  ("de 60 piezas, 6 defectuosas") .................... UNA PROPORCIÓN (5.5)
+
+  Tabla filas × columnas con CANTIDADES de casos ..... CONTINGENCIA (5.6)
 
 
-# c)
+=====================================================================
+  4. REGLAS
+=====================================================================
 
+  H1 = LO QUE ME HACE ACTUAR
+    "¿se puede asegurar que X?" ............ H1 = X
+    control / recepción / "¿se acepta?" .... H1 = la ALARMA  (p > p0) → "derecha"
+    cambio / inversión / "¿conviene?" ...... H1 = la MEJORA  (p < p0) → "izquierda"
+
+  QUIÉN ES 1 Y QUIÉN ES 2  (promedios y apareadas)
+    1 = el que la frase dice que tiene MÁS → así la cola es "derecha"
+    "A resiste más que B"          → 1 = A
+    "el curso aumentó"             → 1 = después
+    "el curso redujo los errores"  → 1 = antes (antes tenía más)
+    delta0 = el "más de N" de la frase (si no hay número → 0)
+
+  REGRESIÓN: QUIÉN ES x
+    x = lo que va después de "por cada" o de "en función de"
+    y = lo que responde
+    "por cada grado más, las ventas..." → x = temperatura, y = ventas
+    beta10 = el número con su signo:
+       "aumenta más de 1,5"   →  1.5, "derecha"
+       "disminuye más de 1,5" → -1.5, "izquierda"
+
+  COLA = el signo de H1
+    >  → "derecha"      <  → "izquierda"      ≠  → "bilateral"
+    Fisher (paso previo) y Chi cuadrado: siempre cola derecha.
+
+  TIPO (intervalos)
+    "estimar entre..." → "bilateral"   "como mínimo" → "minimo"   "como máximo" → "maximo"
+
+  Confianza = 1 − α        (riesgo 5% → alfa = 0.05, confianza = 0.95)
+
+
+=====================================================================
+  5. FUNCIONES POR TEMA
+     Copiá la línea y cambiá cada nombre por su número.
+=====================================================================
+
+  --- 5.1 DATOS ------------------------------------------------------
+
+  tabla con intervalos .... n, x, s = resumen_tabla(tabla, "nombre")
+  valores sueltos ......... n, x, s = resumen_lista(lista, "nombre")
+  te dan n, x̄ y S ......... no hace falta función: usá los números directo
+
+
+  --- 5.2 DOS PROMEDIOS  (grupo 1 = ver sección 4) -------------------
+
+  1º siempre, Fisher previo:
+     metodo = metodo_para_medias(n1, x1, s1, n2, x2, s2, nombres=("1", "2"))
+
+  "¿1 más que 2?":
+     ensayo_medias(metodo, delta0, alfa, n1, x1, s1, n2, x2, s2, cola, nombres=("1", "2"))
+
+  "¿más de un X% más?":    igual, agregando h=1.10 al final  ("10% menos" → h=0.90)
+  σ "históricos" / conocidos:    metodo = "conocidos"   (sin Fisher)
+
+  "diferencia mínima / máxima":
+     intervalo_diferencia(metodo, confianza, n1, x1, s1, n2, x2, s2, tipo, nombres=("1", "2"))
+
+  "incremento % mínimo":
+     h_limite(metodo, alfa, n1, x1, s1, n2, x2, s2, "derecha", nombres=("1", "2"))
+
+
+  --- 5.3 APAREADAS  (sin Fisher) ------------------------------------
+
+  ensayo:     ensayo_apareadas(lista1, lista2, delta0, alfa, cola, nombres=("1", "2"))
+  intervalo:  intervalo_apareadas(lista1, lista2, confianza, tipo, nombres=("1", "2"))
+
+
+  --- 5.4 FISHER COMO PREGUNTA  ("más regular", "reduce el desvío") --
+
+  ensayo_varianzas(phi0, alfa, n1, s1, n2, s2, cola, nombres=("1", "2"))
+     phi0 = 1, o 0.8 si dice "en más de un 20%"
+
+
+  --- 5.5 UNA PROPORCIÓN  (r = cuántos cumplen lo que cuenta p) ------
+
+  "¿cumple? / ¿se acepta?":
+     ensayo_proporcion(p0, n, r, alfa, cola)          p0 = el % de la consigna
+
+  "estimar el %":
+     intervalo_proporcion(r, n, confianza, tipo)
+
+  "% que no cumple" con tabla:
+     r = contar_debajo(tabla, valor)      ("por encima de" → contar_encima)
+     intervalo_proporcion(r, n, confianza, tipo)
+
+  "¿cuántas más?" (error e):
+     n_para_error_proporcion(r / n, e, confianza)     más = n nuevo − n que tenías
+
+  "probabilidad de ... si en realidad es X%"   (p_estrella = ese X%):
+     rc = valor_critico_proporcion(p0, n, alfa, cola)
+     beta_proporcion(rc, n, p_estrella, cola)
+        si es RECHAZAR H0 (detectar, detener, cambiar) → la respuesta es 1 − β
+        si es NO rechazar (no detectar, aceptar)       → la respuesta es β
+
+
+  --- 5.6 CHI CUADRADO  (siempre cola derecha) -----------------------
+
+  "¿sigue un modelo?" (tabla):
+     bondad_ajuste(tabla, modelo, alfa)
+        modelo = "normal", "gamma", "lognormal", "weibull", "gumbel_min", "gumbel_max"
+
+  con parámetros dados:
+     bondad_ajuste(tabla, "normal", alfa, {"mu": valor, "sigma": valor})
+
+  "¿es exponencial?":
+     bondad_exponencial(tabla, alfa)        clases abiertas con None: (None, 100, 55)
+
+  probabilidades dadas o iguales:
+     bondad_proporciones(categorias, observados, probabilidades, alfa)
+        probabilidades = None si son todas iguales
+
+  "¿depende de...?":
+     contingencia(tabla, alfa)              una lista por fila, sin totales
+
+  dos proporciones "¿difieren?":
+     contingencia([[r1, r2], [n1 - r1, n2 - r2]], alfa)
+
+  dos proporciones con sospecha ("mañana tiene menos que tarde"):
+     comparar_proporciones(r1, n1, r2, n2, alfa, "derecha", nombres=("1", "2"))
+        grupo 1 = el que debería tener el % MÁS GRANDE
+
+  "prob. de detectar X% más":
+     potencia_dos_proporciones(r1, n1, r2, n2, alfa, "derecha", diferencia, nombres=("1", "2"))
+
+
+  --- 5.7 REGRESIÓN  (x e y = ver sección 4) -------------------------
+
+  recta + validar + % explicado:
+     regresion_simple(x, y, alfa, nombres=("X", "Y"))
+        el print viene en orden:  HALLAR LA RECTA → VALIDAR → QUÉ % SE EXPLICA
+
+  "¿baja / sube en más de V?":
+     ensayo_pendiente(x, y, beta10, alfa, cola, nombres=("X", "Y"))
+
+  "contribución marginal":
+     intervalo_pendiente(x, y, confianza, nombres=("X", "Y"))
+
+  "fuerza de la relación" (ρ):
+     intervalo_correlacion(x, y, confianza, nombres=("X", "Y"))
+
+  y PROMEDIO para x0 ("los operarios con 16 horas"):
+     estimar_media_regresion(x, y, x0, confianza, nombres=("X", "Y"))
+
+  y de UN caso con x0 ("un operario", "un empleado nuevo"):
+     predecir_regresion(x, y, x0, confianza, nombres=("X", "Y"))
+        → da más ancho que el del promedio
+
+
+=====================================================================
+  6. CÓMO SE ESCRIBE EN PYTHON
+=====================================================================
+
+  Decimales con PUNTO ........... 0.05      (no 0,05)
+  Porcentajes entre 0 y 1 ....... 7% → 0.07
+  Palabras fijas, entre comillas  "derecha"  "izquierda"  "bilateral"  "minimo"  "maximo"
+  # al principio de la línea .... comentario: Python no lo lee
+
+  Lista de valores sueltos:
+     horas = [10, 12, 15, 18]
+
+  Tabla con intervalos (desde, hasta, frecuencia):
+     tabla = [(100, 150, 17), (150, 200, 51), (200, 250, 32)]
+
+  Tabla de contingencia (una lista por fila, sin totales):
+     tabla = [[45, 30, 25],
+              [60, 70, 50],
+              [35, 40, 45]]
+
+  Guardar lo que devuelve una función para usarlo después:
+     nA, xA, sA = resumen_lista(listaA, "A")
+     metodo = metodo_para_medias(nA, xA, sA, nB, xB, sB, nombres=("A", "B"))
